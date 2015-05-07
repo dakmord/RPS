@@ -6,7 +6,7 @@
       customlicense="" 
       customlicensenotes="" 
       displayname="TM4C1294NPDT" 
-      downloadurl="https://github.com/dakmord/RPS/trunk/matlab_repo/" 
+      downloadurl="https://github.com/dakmord/RPS/trunk/matlab_repo" 
       enable="1" 
       folder="TM4C1294NPDT" 
       fullname="Simulink Support Package for TI TivaC TM4C1294NPDT Hardware" 
@@ -14,7 +14,7 @@
       name="TM4C1294NPDT" 
       platform="PCWIN64" 
       showsplicense="no" 
-      url="https://github.com/dakmord/RPS/trunk/matlab_repo/" 
+      url="https://github.com/dakmord/RPS/trunk/matlab_repo" 
       version="0.81" 
       visible="1">  
       </SupportPackage>
