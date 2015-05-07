@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageRepository>
    <MatlabRelease name="(R2013b)">
-      <SupportPackage baseproduct="Simulink" customlicense="" customlicensenotes="" displayname="TM4C1294NPDT" downloadurl="https://github.com/dakmord/RPS/tree/master/matlab_repo" enable="1" folder="TM4C1294NPDT" fullname="Simulink Support Package for TI TivaC TM4C1294NPDT Hardware" licenseurl="http://creativecommons.org/licenses/by-nc-sa/3.0/" name="TM4C1294NPDT" platform="PCWIN64" showsplicense="no" url="https://github.com/dakmord/RPS/tree/master/matlab_repo" version="0.72" visible="1">
+      <SupportPackage baseproduct="Simulink" customlicense="" customlicensenotes="" displayname="TM4C1294NPDT" downloadurl="https://github.com/dakmord/RPS/tree/master/matlab_repo" enable="1" folder="https://github.com/dakmord/RPS/tree/master/matlab_repo/TM4C1294NPDT" fullname="Simulink Support Package for TI TivaC TM4C1294NPDT Hardware" licenseurl="http://creativecommons.org/licenses/by-nc-sa/3.0/" name="TM4C1294NPDT" platform="PCWIN64" showsplicense="no" url="https://github.com/dakmord/RPS/tree/master/matlab_repo" version="0.72" visible="1">
         
       </SupportPackage>
    </MatlabRelease>

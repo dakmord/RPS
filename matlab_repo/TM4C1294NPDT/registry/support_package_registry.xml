@@ -16,7 +16,7 @@
     showsplicense="no"
     downloadurl="###REPO_URL###"
     licenseurl="http://creativecommons.org/licenses/by-nc-sa/3.0/"
-    folder="TM4C1294NPDT"
+    folder="https://github.com/dakmord/RPS/tree/master/matlab_repo/TM4C1294NPDT"
     demoxml="demo/demos.xml">
     
     <TargetHardware name="TM4C1294NPDT" datafile="TM4C1294NPDT"></TargetHardware>
