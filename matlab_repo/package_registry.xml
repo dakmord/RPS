@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageRepository>
+   <MatlabRelease name="(R2013b)">
+      <SupportPackage baseproduct="Simulink" customlicense="" customlicensenotes="" displayname="TM4C1294NPDT" downloadurl="file:///C:/Users/q365198/Documents/Rapid-Prototyping-System/rps/hwinstaller" enable="1" folder="TM4C1294NPDT" fullname="Simulink Support Package for TI TivaC TM4C1294NPDT Hardware" licenseurl="http://creativecommons.org/licenses/by-nc-sa/3.0/" name="TM4C1294NPDT" platform="PCWIN64" showsplicense="no" url="file:///C:/Users/q365198/Documents/Rapid-Prototyping-System/rps/hwinstaller" version="0.72" visible="1">
+        
+      </SupportPackage>
+   </MatlabRelease>
+</PackageRepository>
