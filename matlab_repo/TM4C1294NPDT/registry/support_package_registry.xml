@@ -7,7 +7,7 @@
     platform="PCWIN,PCWIN64"
     visible="1"
     enable="1"
-    url="C:\Users\q365198\Documents\Rapid-Prototyping-System\rps\hwinstaller"
+    url="https://github.com/dakmord/RPS/tree/master/matlab_repo"
     baseproduct="Simulink"
     fullname="Simulink Support Package for TI TivaC TM4C1294NPDT Hardware"
     displayname="TM4C1294NPDT"

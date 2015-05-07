@@ -12,9 +12,9 @@ root=ex.getRoot;
 setup = root.getMCOSObjectReference;
 
 if nargin == 0
-    selected_mirror = get_repo_url('bbkt');
+    selected_mirror = get_repo_url('real');
 else
-    selected_mirror = get_repo_url(varargin{1});
+    selected_mirror = get_repo_url('debug');
 end
 
 setup.Installer.XmlHttp=selected_mirror;
@@ -30,13 +30,9 @@ end
 
 function url = get_repo_url(name)
 switch name
-    case {'cu', '1'}
-        url = 'http://people.clemson.edu/~pxu/rtt_repo';
-    case {'sorg', '2'}
-        url = 'http://web-service.sippey.org/matlab_repo';
-    case {'sorgd', '3'}
-        url = 'http://web-service.sippey.org/matlab_repo/debug';
-    case {'bbkt', '4'}
+    case {'real', '1'}
+        url = 'https://github.com/dakmord/RPS/tree/master/matlab_repo';
+    case {'debug', '2'}
         %url = 'https://bitbucket.org/sippey/aquaria/wiki/matlab_repo';
         url = 'file:///C:/Users/q365198/Documents/Rapid-Prototyping-System/rps/hwinstaller';
         %url = 'https://bytebucket.org/sippey/aquaria/wiki/matlab_repo/package_registry.xml?rev=707758b8e3d05e6cb0c385de76a58e59f8489de0'
