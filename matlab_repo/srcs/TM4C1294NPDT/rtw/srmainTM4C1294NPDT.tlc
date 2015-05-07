@@ -1,0 +1,197 @@
+%selectfile NULL_FILE
+
+%%====================================================================
+%% Function: MySLibCallMdlStepMultiTaskingBaseRate 
+%% Abstract:
+%%   Model step for multi-tasking case, subrate, ERT targets
+%%====================================================================
+%function MySLibCallMdlStepMultiTaskingBaseRate(RunExtModeServer) Output
+    %if ExtMode == 1
+        /* External mode START*/
+        {
+            boolean_T rtmStopReq = FALSE;
+            rtExtModePauseIfNeeded(%<RTMGetModelSS()> ->extModeInfo, %<FcnNumST()>, &rtmStopReq);
+            if (rtmStopReq) {
+              %<RTMSetStopRequested("TRUE")>;
+            }
+            rtExtModeOneStep(%<RTMGetModelSS()>->extModeInfo, 3, &rtmStopReq);
+            if (rtmStopReq) {
+              %<RTMSetStopRequested("TRUE")>;
+            }
+
+            if (%<RTMGetStopRequested()> == TRUE) {
+              %<LibSetRTModelErrorStatus("\"Simulation Stopped\"")>;
+              rtExtModeShutdown(%<LibNumSynchronousSampleTimes()>);
+            }
+        }
+        %%<FcnGenerateExtModeOneStep()>
+        /* External mode  END*/
+	%endif
+
+    %<SysTickIsrEnable()> 
+    %<FcnCallMdlStep(0)>\
+    %<SysTickIsrDisable()>
+
+%endfunction
+
+
+
+%function SLibCreateMain(mainFileName) void
+  
+  %if GenerateSampleERTMain
+    %assign ::CompiledModel.GenerateSampleERTMain = TLC_FALSE
+    %warning Overriding example (e)rt_main.c!
+  %endif
+
+  %assign cFile = LibCreateSourceFile("Source", "Custom", mainFileName)
+  %assign singleTasking = SLibSingleTasking()
+
+  %assign tgtData = FEVAL("get_param", CompiledModel.Name, "TargetExtensionData")
+  %assign isDetectOverrun = tgtData.Enable_overrun_detection
+  %assign overrunPin = tgtData.Digital_output_to_set_on_overrun
+  %assign serial0BaudRate = tgtData.Serial0_baud_rate
+  %assign analogInputRefV = 0
+
+
+
+  %openfile tmpBuf
+  #include "%<LibGetMdlPubHdrBaseName()>.h"
+  #include "Arduino.h"
+  #include "energia_runtime.h"
+  #include "io_wrappers.h"
+  %if ExtMode
+    #include <ext_work.h>          /* External mode header files */
+    #include <ext_svr.h>
+    #include <ext_share.h>
+    #include <updown.h>
+  %endif
+
+  #define OverrunFlag IsrOverrun
+  volatile int IsrOverrun = 0;\
+  volatile boolean_T isRateRunning[%<FcnNumST()>] = %<LibInitStr(FcnNumST())>; \
+  volatile boolean_T need2runFlags[%<FcnNumST()>] = %<LibInitStr(FcnNumST())>; \
+
+  %<SLibDeclareFcnProtoCtlVariables()>\
+  
+  %<LibWriteModelData()>\
+  %closefile tmpBuf
+  
+  
+  %<LibSetSourceFileSection(cFile, "Definitions", tmpBuf)>
+  
+  %openfile tmpBuf
+  %assign SAMPLETIME = CompiledModel.FundamentalStepSize
+
+  %if SAMPLETIME < 0.000001
+      %<LibReportError("The minimum supported sample time is 1 microsecond. Change the Sample time parameter in blocks that that use incorrect sample times.")>
+  %elseif SAMPLETIME > 4294967
+      %<LibReportError("The maximum supported sample time is 4294967 seconds. Change the Sample time parameter in blocks that that use incorrect sample times.")>
+  %endif
+  %% Calculate if the sample time can be measured in microseconds given the
+  %% usnsigned long counter of the micros() Arduino library function
+  %% The maximum sample time is: (2^32-1) / 1000000 
+  %assign TIMEINMICROS = (SAMPLETIME < 4294)
+  
+  %if (TIMEINMICROS)
+    #define STEP_SIZE (unsigned long) (%<CAST("Number", SAMPLETIME * 1000000)>)
+    %assign TFUNC = "micros()"
+  %else
+    #define STEP_SIZE (unsigned long) (%<CAST("Number", SAMPLETIME * 1000)>)
+    %assign TFUNC = "millis()"
+  %endif
+
+  %closefile tmpBuf
+ 
+  %<LibSetSourceFileSection(cFile, "Includes", tmpBuf)>
+  
+  %openfile tmpBuf
+
+
+  int_T main(void)
+  {
+    unsigned long oldtime = 0L;
+    unsigned long actualtime;
+    MW_EthernetBegin();
+    
+    %if ExtMode
+        /* initialize external mode */
+        rtParseArgsForExtMode(0, NULL);
+    %endif
+
+    %if MultiInstanceERTCode && !GenerateClassInterface 
+        %% Pack model data into RTM 
+        %<FcnPackModelDataIntoRTM()> 
+    %endif 
+
+    %<LibCallModelInitialize()>\
+
+    %if ExtMode
+        %<SLibGenERTExtModeInit()>
+    %endif 
+
+    %if (isDetectOverrun==1)
+        /* This pin indicates the base rate overrun */
+        pinMode(%<overrunPin>, OUTPUT);
+    %endif
+
+    #ifdef _RTT_USE_SERIAL0_
+        Serial_begin(0, %<serial0BaudRate>); 
+    #endif
+    
+%% analogReference is not used because tm4c1294ncpdt processor does support
+%% external or default VDD ... GND reference
+    %switch (analogInputRefV)
+       %case 1
+            analogReference(INTERNAL1V5);
+            %break
+        %case 2
+            analogReference(INTERNAL2V5);
+            %break
+        %case 3
+            analogReference(EXTERNAL);
+            %break
+        %default
+            %% DEFAULT case
+    %endswitch
+
+    /* The main step loop */
+    while (%<ERTStopCheck()>) {
+      actualtime = %<TFUNC>;
+      if ((unsigned long) (actualtime - oldtime) >= STEP_SIZE) {
+        oldtime = actualtime;
+        %if ExtMode
+ 	            %<FcnGenerateExtModeOneStep()>
+        %endif
+		    %<LibCallModelStep(0)>\
+        %if ExtMode
+                rtExtModeCheckEndTrigger();
+        %endif
+            %if (isDetectOverrun==1)
+          /* Check for overrun */
+          if ((unsigned long) (%<TFUNC> - oldtime) > STEP_SIZE) {
+                digitalWrite(%<overrunPin>, 1);
+        }
+            %endif
+        }
+    }
+    %if ExtMode
+    rtExtModeShutdown(%<NumSynchronousSampleTimes>);
+      %% This delay ensures that the serial data are sent
+    delay(1000);
+    %endif
+    %<LibCallModelTerminate()>\
+    return 0;
+  }
+  %closefile tmpBuf
+  
+  %<LibSetSourceFileSection(cFile, "Functions", tmpBuf)>
+  
+%endfunction
+
+%%if !IsModelReferenceTarget()
+%%Might call %matlab here to find the version and use ert_main/rt_main
+%%accordingly.. From the other hand side, using the same name is even better
+  %%assign mdlName = LibGetModelName()
+  %%assign mainFileName = "main_%<mdlName>"
+  %%<FcnSingleTaskingMain(mainFileName)>
+%%endif

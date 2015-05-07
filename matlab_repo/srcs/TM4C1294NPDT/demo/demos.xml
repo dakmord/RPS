@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--    -->
+<demos>
+    <name>TI TivaC LaunchPad Support Package</name>
+    <type>simulink</type>
+    <icon>HelpIcon.DEMOS</icon>
+    <description isCdata="no">
+        <p>Demo projects that use TI TivaC LaunchPad Support Package</p>
+    </description>
+    <website>
+        <a href="http://bit.ly/sippey_roth_repo">
+            More RoTH Support Packages&#032;
+            <img src="html/demo_arrow.png" border="none" alt="arrow" align="middle"></img>
+        </a>
+    </website>     
+    <demosection>
+        <label>Examples</label>
+        <demoitem>
+            <label>Onboard Buttons and LEDs</label>
+            <type>model</type>
+            <source>tm4c1294npdt_onboard_button_led</source>
+            <file>html/tm4c1294npdt_onboard_button_led.html</file>
+        </demoitem>
+    </demosection>
+    <!-- Examples -->
+</demos>
+
+<!-- LocalWords:  gettingstarted stellaris launchpad ti random_blink
+-->

@@ -1,0 +1,338 @@
+%selectfile NULL_FILE
+
+
+
+%function SysTickIsrEnable() Output
+    systick_intr_enable();
+%endfunction
+
+%function SysTickIsrDisable() Output
+    systick_intr_disable();
+%endfunction
+
+%%====================================================================
+%% Function: MySLibCallMdlStepMultiTaskingBaseRate 
+%% Abstract:
+%%   Model step for multi-tasking case, subrate, ERT targets
+%%====================================================================
+%function MySLibCallMdlStepMultiTaskingBaseRate(RunExtModeServer) Output
+    %if ExtMode == 1
+        /* External mode START*/
+        {
+            boolean_T rtmStopReq = FALSE;
+            rtExtModePauseIfNeeded(%<RTMGetModelSS()> ->extModeInfo, %<FcnNumST()>, &rtmStopReq);
+            if (rtmStopReq) {
+              %<RTMSetStopRequested("TRUE")>;
+            }
+            rtExtModeOneStep(%<RTMGetModelSS()>->extModeInfo, 3, &rtmStopReq);
+            if (rtmStopReq) {
+              %<RTMSetStopRequested("TRUE")>;
+            }
+
+            if (%<RTMGetStopRequested()> == TRUE) {
+              %<LibSetRTModelErrorStatus("\"Simulation Stopped\"")>;
+              rtExtModeShutdown(%<LibNumSynchronousSampleTimes()>);
+            }
+        }
+        %%<FcnGenerateExtModeOneStep()>
+        /* External mode  END*/
+	%endif
+
+    %<SysTickIsrEnable()> 
+    %<FcnCallMdlStep(0)>\
+    %<SysTickIsrDisable()>
+
+%endfunction
+
+
+
+%function SLibCreateMain(mainFileName) void
+  
+  %if GenerateSampleERTMain
+    %assign ::CompiledModel.GenerateSampleERTMain = TLC_FALSE
+    %warning Overriding example (e)rt_main.c!
+  %endif
+
+  %assign cFile = LibCreateSourceFile("Source", "Custom", mainFileName)
+  %assign singleTasking = SLibSingleTasking()
+
+  %openfile tmpBuf
+
+#define OverrunFlag IsrOverrun
+  volatile int IsrOverrun = 0;\
+  volatile boolean_T isRateRunning[%<FcnNumST()>] = %<LibInitStr(FcnNumST())>; \
+  volatile boolean_T need2runFlags[%<FcnNumST()>] = %<LibInitStr(FcnNumST())>; \
+
+  %<SLibDeclareFcnProtoCtlVariables()>\
+  
+  %<LibWriteModelData()>\
+  %closefile tmpBuf
+  
+  %<LibSetSourceFileSection(cFile, "Definitions", tmpBuf)>
+  
+  %openfile tmpBuf
+  #include "%<LibGetMdlPubHdrBaseName()>.h"
+  //#include "inc/hw_ints.h"
+  //#include "inc/hw_memmap.h"
+  //#include "inc/hw_types.h"
+  //#include "driverlib/debug.h"
+  //#include "driverlib/fpu.h"
+  //#include "driverlib/gpio.h"
+  //#include "driverlib/interrupt.h"
+  //#include "driverlib/pin_map.h"
+  //#include "driverlib/rom.h"
+  //#include "driverlib/sysctl.h"
+  //#include "driverlib/timer.h"
+  #include "stellaris_runtime.h"
+
+  #define STEP_SIZE %<CompiledModel.FundamentalStepSize>f
+
+  %closefile tmpBuf
+ 
+  %<LibSetSourceFileSection(cFile, "Includes", tmpBuf)>
+  
+  %openfile tmpBuf
+
+%if !singleTasking
+    /* Function: rt_OneStep -------------------------------------------
+     *
+     * Abstract:
+     *      Perform one step of the model.  Multi-tasking implementation.
+     */
+    %assign tid01Eq = FixedStepOpts.TID01EQ
+    %% tid01eq == 0 indicates that there is a dummy base rate
+    %% generated to synchronize subrates i.e.: 
+    %% Rates: Ts = 3s and Ts = 4s --> need base rate ticking at Ts = 1s
+    %% 
+    %% Pre-condition: Timer interrupt calling rt_OneStepM must be disabled
+    %% Post-condition: Timer interrupt calling rt_OneStepM is disabled
+    %%
+    void rt_OneStep(void)
+    {
+        boolean_T eventFlags[%<FcnNumST()>]; 
+        int_T i;
+
+        // Overrun test
+        if (IsrOverrun) {
+        	%<LibSetRTModelErrorStatus("\"Overrun\"")>;
+            return;
+        }
+
+        /* Check base rate for overrun */
+        if (isRateRunning[0]++) 
+        {
+            IsrOverrun = 1;
+            %%x <render_setoverrun(0)>
+            %%! <tgtMultiTaskingOverrunNotification("0")>
+            isRateRunning[0]--; /* allow future iterations to succeed*/
+            return;
+        }
+        %%<FcnCallEventFlagsFunction("%<FcnMdlName()>_")>\
+
+        /* Save FPU context here (if necessary) */
+        /* Re-enable timer or interrupt here */
+        %assign varsbuf = LibWriteModelInputs()
+        %if varsbuf != ""
+          /* Remove conditional, and set model inputs here */
+          %<varsbuf>\
+        %endif
+
+        /*
+        * For a bare-board target (i.e., no operating system), the
+        * following code checks whether any subrate overruns,
+        * and also sets the rates that need to run this time step.
+        */
+        for (i = 1; i < %<FcnNumST()>; i++) {
+            eventFlags[i] = (boolean_T)%<RTMTaskRunsThisBaseStep("i")>;
+        }
+
+        %%x <render_profiletaskstart(0)>
+          %%<SysTickIsrEnable()> 
+          %<MySLibCallMdlStepMultiTaskingBaseRate(0)>
+          %%x <tgtMdlStepEpilogue(0)>
+          %%<SysTickIsrDisable()>
+          isRateRunning[0]--;
+        %%x %<render_profiletaskend(0)>    
+
+           // non base rate tasks
+            for(i = 1; i < %<FcnNumST()>; i++) {
+                if (eventFlags[i]) {
+                    if (need2runFlags[i]++) {
+                        IsrOverrun = 1;
+                        %%x %<render_setoverrun("i")>
+                        %%! <tgtMultiTaskingOverrunNotification("i")>
+                        need2runFlags[i]--; /* allow future iterations to succeed*/
+                        break;
+                    } 
+                }
+            }
+            for (i = %<1+tid01Eq>; i < %<FcnNumST()>; i++) 
+            {
+                if (isRateRunning[i]) 
+                {
+                    /* Yield to higher priority*/
+                    return;
+                }
+                
+                if (need2runFlags[i])
+                {
+                    isRateRunning[i]++;
+                    %%x <render_profiletaskstart("i")>
+                      %<SysTickIsrEnable()>
+                        switch(i) {
+                            %foreach idx = LibGetNumSyncPeriodicTasks() - 1
+                            %assign i = idx + 1 + FixedStepOpts.TID01EQ
+                            case %<i>:
+                                %%x assign rootSystem.CurrentTID = i
+                                %<FcnCallMdlStep(i)>\
+                                break;
+                            %endforeach
+                            default: 
+                                break;
+                        }
+                      %%x %<tgtMdlStepEpilogue("i")>
+                      %<SysTickIsrDisable()>
+                    %%! %<render_profiletaskend("i")>
+                    need2runFlags[i]--;
+                    isRateRunning[i]--;
+                }
+            }
+
+            %assign varsbuf = LibWriteModelOutputs()
+            %if varsbuf != ""
+              /* Remove conditional, and get model outputs here */
+              %<varsbuf>\
+            %endif
+
+            %if ExtMode
+                rtExtModeCheckEndTrigger();
+            %endif
+    }
+
+%else
+
+  %assign fcnReturns = "void"
+  %assign fcnName = "rt_OneStep"
+  %assign fcnParams = ""
+  %assign fcnCategory = "main"
+  %createrecord fcnRec {Name fcnName; Returns fcnReturns; Params fcnParams; ...
+    Abstract ""; Category fcnCategory; GeneratedBy "bareboard_srmain.tlc"; ...
+    Type "Utility"}
+  %<SLibDumpFunctionBanner(fcnRec)>
+  %undef fcnRec
+  %<fcnReturns> %<fcnName>(%<fcnParams>)
+  {
+    /* Disable interrupts here */
+    
+    /* Check for overun */
+    if (OverrunFlag++) {
+      %<LibSetRTModelErrorStatus("\"Overrun\"")>;
+      return;
+    }
+    //led_debug_signal(LED_DEBUG_ALL_ON);
+
+    /* Save FPU context here (if necessary) */
+    /* Re-enable timer or interrupt here */
+    %assign varsbuf = LibWriteModelInputs()
+    %if varsbuf != ""
+      /* Remove conditional, and set model inputs here */
+      %<varsbuf>\
+    %endif
+    
+    %%<LibCallModelStep(0)>\
+
+
+    %<MySLibCallMdlStepMultiTaskingBaseRate(0)>
+    
+    %assign varsbuf = LibWriteModelOutputs()
+    %if varsbuf != ""
+      /* Remove conditional, and get model outputs here */
+      %<varsbuf>\
+    %endif
+
+    %if ExtMode
+        rtExtModeCheckEndTrigger();
+    %endif
+    //led_debug_signal(LED_DEBUG_ALL_OFF);
+    OverrunFlag--;
+    
+    /* Disable interrupts here */
+    /* Restore FPU context here (if necessary) */
+    /* Enable interrupts here */
+  }
+%endif
+
+  %assign fcnReturns = "int_T"
+  %assign fcnName = "main"
+  %assign fcnParams = "int_T argc, const char_T *argv[]"
+  %assign fcnCategory = "main"
+  %createrecord fcnRec {Name fcnName; Returns fcnReturns; Params fcnParams; ...
+    Abstract ""; Category fcnCategory; GeneratedBy "bareboard_srmain.tlc"; ...
+    Type "Main"}
+  %<SLibDumpFunctionBanner(fcnRec)>
+  %undef fcnRec
+  %<fcnReturns> %<fcnName>(%<fcnParams>)
+  { 
+    volatile boolean_T noErr;
+    system_init();
+
+    %if ExtMode
+      /* initialize external mode */
+      ExtParseArgsAndInitUD(0, NULL);
+    %endif
+
+    /* Initialize model */
+    /* Model initialization might involve enabling of some peripherals.
+     * I discovered that it must happen after IntMasterEnable(); otherwise
+     * I get non-deterministic behaviour. For example, UART Read may return
+     * bogus values after power cycle */
+    %<LibCallModelInitialize()>\
+
+    %if ExtMode
+      %<SLibGenERTExtModeInit()>
+    %endif 
+   
+    systick_init(STEP_SIZE);
+
+    //
+    // Loop forever while the timer is running.
+    //
+    do {
+    %if ExtMode
+        noErr =( %<LibGetRTModelErrorStatus()> == (NULL)) && 
+               !%<RTMGetStopRequested()>;
+    %else
+        noErr =
+        (%<LibGetRTModelErrorStatus()> == (NULL));
+    %endif
+    } while ( noErr );
+
+    systick_intr_disable();
+    %<LibCallModelTerminate()>\
+
+    if (IsrOverrun)
+    {
+        led_debug_signal(LED_DEBUG_OVERRUN);
+        /* program will hang here */
+    }else
+    {
+        system_safe();
+        system_delay_ms(300);
+        system_reset();
+    }
+    return 0;
+  }
+
+  %closefile tmpBuf
+  
+  %<LibSetSourceFileSection(cFile, "Functions", tmpBuf)>
+  
+%endfunction
+
+%%if !IsModelReferenceTarget()
+%%Might call %matlab here to find the version and use ert_main/rt_main
+%%accordingly.. From the other hand side, using the same name is even better
+  %%assign mdlName = LibGetModelName()
+  %%assign mainFileName = "main_%<mdlName>"
+  %%<FcnSingleTaskingMain(mainFileName)>
+%%endif
