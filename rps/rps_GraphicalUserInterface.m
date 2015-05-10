@@ -22,7 +22,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 10-May-2015 13:59:49
+% Last Modified by GUIDE v2.5 10-May-2015 15:25:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -108,9 +108,6 @@ handles.log = log;
 
 % Check if local repo is outdated
 checkForOutdated(hObject, handles);
-
-% Statusbar with url...
-
 
 % Choose default command line output for rps_GraphicalUserInterface
 handles.output = hObject;
@@ -198,11 +195,11 @@ function Untitled_2_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_7_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_7 (see GCBO)
+function file_exit_Callback(hObject, eventdata, handles)
+% hObject    handle to file_exit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+close(gcf);
 
 % --------------------------------------------------------------------
 function Untitled_17_Callback(hObject, eventdata, handles)
@@ -240,11 +237,14 @@ function Untitled_16_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_18_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_18 (see GCBO)
+function file_preferences_Callback(hObject, eventdata, handles)
+% hObject    handle to file_preferences (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+%uiwait(options);
+enableDisableFig(gcf,'off');
+uiwait(options);
+enableDisableFig(gcf,'on');
 
 % --------------------------------------------------------------------
 function Untitled_19_Callback(hObject, eventdata, handles)
@@ -350,6 +350,8 @@ function checkUpdates_btn_Callback(hObject, eventdata, handles)
 % hObject    handle to checkUpdates_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+sb = statusbar('Refreshing Recent Changes..');
+set(sb.CornerGrip, 'visible','off');
 
 
 
@@ -407,10 +409,10 @@ function log_table_CellSelectionCallback(hObject, eventdata, handles)
 
 data = get(handles.log_table,'Data');
 
-authorString =      ['Author:   ' data{eventdata.Indices(1),2} ];
-revisionString =    ['Revision: ' data{eventdata.Indices(1),1} ];
-dateString =        ['Date:     ' data{eventdata.Indices(1),3} ];
-outputText = sprintf('\n%s\n%s\n%s\nLog:\n%s',revisionString, authorString, dateString,data{eventdata.Indices(1),4});
+authorString =      ['#Author:   ' data{eventdata.Indices(1),2} ];
+revisionString =    ['#Revision: ' data{eventdata.Indices(1),1} ];
+dateString =        ['#Date:     ' data{eventdata.Indices(1),3} ];
+outputText = sprintf('\n\n%s\n%s\n%s\n#Log:\n%s',revisionString, authorString, dateString,data{eventdata.Indices(1),4});
 disp(outputText);
 
 
@@ -441,3 +443,10 @@ function log_table_KeyPressFcn(hObject, eventdata, handles)
 %	Character: character interpretation of the key(s) that was pressed
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object creation, after setting all properties.
+function figure1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
