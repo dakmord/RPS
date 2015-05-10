@@ -22,7 +22,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 10-May-2015 18:49:32
+% Last Modified by GUIDE v2.5 10-May-2015 19:45:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,6 +54,16 @@ function rps_GraphicalUserInterface_OpeningFcn(hObject, eventdata, handles, vara
 
 % Save rps home path
 handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
+% Splash Screen
+s = SplashScreen( 'Rapid-Prototyping-System', 'splashScreen.png', ...
+                        'ProgressBar', 'off', ...
+                        'ProgressPosition', 5, ...
+                        'ProgressRatio', 0.8 );
+s.addText( 40, 50, 'Rapid-Prototyping-System', 'FontSize', 22, 'Color', 'white' ,'FontWeight','bold');
+s.addText( 40, 120, 'v0.8', 'FontSize', 22, 'Color', 'white' );
+s.addText( 200, 270, 'Loading...', 'FontSize', 30, 'Color', 'white','FontWeight','bold' );
+
 
 % Check if it userconfig.xml is missing
 if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
@@ -87,6 +97,7 @@ end
 % Basic Initialization...
 set(handles.repo_edit, 'String', handles.repoFolder);
 set(handles.revision_edit, 'String', handles.revision);
+set(handles.repository_edit, 'String', handles.url);
 
 % Fill log with actual stuff
 if handles.credentialsNeeded==1
@@ -106,8 +117,6 @@ end
 set(handles.log_table,'Data',log);
 handles.log = log;
 
-% Check if local repo is outdated
-checkForOutdated(hObject, handles);
 
 % Choose default command line output for rps_GraphicalUserInterface
 handles.output = hObject;
@@ -115,12 +124,15 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
+% Check if local repo is outdated
+checkForOutdated(hObject, handles)
+
 % UIWAIT makes rps_GraphicalUserInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 function checkForOutdated(hObject, handles)
-if handles.revision<handles.log{1,1}
+if handles.revision<str2num(handles.log{1,1})
     set(handles.outdated_text,'Visible','on');
 else
     set(handles.outdated_text,'Visible','off');
@@ -178,7 +190,12 @@ function svn_update_Callback(hObject, eventdata, handles)
 % hObject    handle to svn_update (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+statusbar('Updating working copy...');
+[username,password] = readEncryptedPassword(hObject, handles);
+updateSVN(fullfile(handles.homeDir,'blocks'), username, password);
+updateSVN(fullfile(handles.homeDir,'help'), username, password);
+updateSVN(fullfile(handles.homeDir,'rps'), username, password);
+statusbar('');
 
 % --------------------------------------------------------------------
 function Untitled_11_Callback(hObject, eventdata, handles)
@@ -263,6 +280,10 @@ if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
     handles.repoFolder = repoFolder;
     handles.revision = revision;
     handles.maxLogEntries = 20;
+    % Actualize components
+    set(handles.revision_edit,'String',num2str(handles.revision));
+    set(handles.repo_edit,'String',handles.repoFolder);
+    set(handles.repository_edit,'String',handles.url);
 else
     % not existing, end and open preferences!
     disp('### Missing userconfig.xml in your folder. Opening preferences...');
@@ -384,7 +405,7 @@ function checkUpdates_btn_Callback(hObject, eventdata, handles)
 % hObject    handle to checkUpdates_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-sb = statusbar('Refreshing Recent Changes..');
+sb = statusbar('Refreshing Recent Changes...');
 sb.CornerGrip.setVisible(false);
 %set(sb.CornerGrip, 'visible','off');
 
@@ -412,6 +433,30 @@ checkForOutdated(hObject, handles);
 % Publish handles
 guidata(hObject, handles);
 statusbar('');
+
+
+function [username,password] = readEncryptedPassword(hObject, handles)
+% Read password/login from file
+if handles.credentialsNeeded==1
+    % login details
+    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
+        % Available
+        [username,password] = decryptCredentials();
+    else
+        % Password Missing
+        error('Missing SVN Login/Password!');
+    end
+else
+   % Not needed
+   username = '';
+   password = '';
+end
+if credentialsValiditySVN(handles.url, username, password)==1
+    % could be correct
+else
+    % wrong
+    errordlg('Please check your saved svn login/password. Might be wrong!','Wrong password/login!?');
+end
 
 
 function repo_edit_Callback(hObject, eventdata, handles)
@@ -509,3 +554,26 @@ function figure1_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+
+function repository_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to repository_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of repository_edit as text
+%        str2double(get(hObject,'String')) returns contents of repository_edit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function repository_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to repository_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
