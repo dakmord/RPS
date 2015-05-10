@@ -229,164 +229,176 @@ function btn_save_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % Get previous userconfig data if available
+d = showLoadingAnimation('Saving preferences...', 'Checking URLs...');
+try
+    % Get actualized data
+    handles.updateInterval = str2num(get(handles.updateInterval_edit,'String'));
+    handles.autoUpdate = get(handles.checkUpdates_cb,'Value');
+    handles.customUrl = get(handles.customUrl_cb,'Value');
+    handles.credentialsNeeded = get(handles.credentials_cb,'Value');
 
-% Get actualized data
-handles.updateInterval = str2num(get(handles.updateInterval_edit,'String'));
-handles.autoUpdate = get(handles.checkUpdates_cb,'Value');
-handles.customUrl = get(handles.customUrl_cb,'Value');
-handles.credentialsNeeded = get(handles.credentials_cb,'Value');
 
-
-% Check if Repo URL is valid
-if handles.customUrl==1
-    % Custom URL
-    handles.url = get(handles.customUrl_edit, 'String');
-else
-    % Popupmenu URL
-    handles.url = getCurrentPopupString(handles.popupmenu_url);
-    % Check if Public/Private
-    if ~isempty(strfind(handles.url, '(PUBLIC)')) && get(handles.credentials_cb,'Value')==0
-        % Public
-        handles.credentialsNeeded = false;
+    % Check if Repo URL is valid
+    if handles.customUrl==1
+        % Custom URL
+        handles.url = get(handles.customUrl_edit, 'String');
     else
-        % Private
-        handles.credentialsNeeded = true;
+        % Popupmenu URL
+        handles.url = getCurrentPopupString(handles.popupmenu_url);
+        % Check if Public/Private
+        if ~isempty(strfind(handles.url, '(PUBLIC)')) && get(handles.credentials_cb,'Value')==0
+            % Public
+            handles.credentialsNeeded = false;
+        else
+            % Private
+            handles.credentialsNeeded = true;
+        end
+        % Filter private/public out
+        handles.url = strsplit(handles.url, ' (P');
+        handles.url = handles.url{1};
     end
-    % Filter private/public out
-    handles.url = strsplit(handles.url, ' (P');
-    handles.url = handles.url{1};
-end
 
-if ~isempty(strfind(handles.url,'trunk')) || ...
-        ~isempty(strfind(handles.url,'tags')) || ...
-        ~isempty(strfind(handles.url,'branches'))
-    % Error wrong url given
-    errordlg('Please delete subfolders in URL (e.g. trunk,tags,branches).','Wrong URL');
-    return;
-end
-if checkSvnUrl(handles.url)==-1
-    % Wrong URL, something wrong
-    errordlg('Cannot connect to given SVN-Repository URL. Please check URL.','Wrong URL');
-    return;
-end
-
-% Check for local working copy revision and repository folder (trunk, tags/.., branches/..
-homeDir = getpref('RapidPrototypingSystem','HomeDir');
-[revision, folder, repoHome]=checkLocalWorkingCopy(fullfile(homeDir, 'rps'));
-handles.revision = revision;
-handles.repoFolder = folder;
-
-% Check if credentials are correct
-if handles.credentialsNeeded == true
-    % needed, check if correct
-    if isequal(exist(fullfile('..','credentials.xml.aes'),'file'),2)
-        % Available
-        [username,password] = decryptCredentials();
-    else
-        % Password Missing
-        btn_saveCredentials_Callback(hObject, eventdata, handles);
-        error('Missing SVN Login/Password! Save credentials and press "Save" button again.');
-    end
-    % Check Password
-    if credentialsValiditySVN(handles.url, username, password)==1
-        % Could be correct
-    else
-        % Wrong
-        errordlg('SVN Login/Password seems to be wrong. Please re-enter your login details!','Wrong Login/Password!');
-        error('SVN Login/Password seems to be wrong. Please re-enter your login details!');
-    end
-else
-    % No Password/Login needed
-    password='';
-    username='';
-end
-
-% Check if url is the same repo as local working copy
-if isempty(strfind(handles.url,repoHome))
-    % Another Repo URL, need to checkout/switch to new url/trunk...
-    % First check if new repo/trunk contains dir (rps,blocks,help)
-    if ~checkFolderExistence(fullfile(repoHome,'trunk', 'rps'))
-        errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
+    d.setProgressStatusLabel('Verifying repo...');
+    if ~isempty(strfind(handles.url,'trunk')) || ...
+            ~isempty(strfind(handles.url,'tags')) || ...
+            ~isempty(strfind(handles.url,'branches'))
+        % Error wrong url given
+        errordlg('Please delete subfolders in URL (e.g. trunk,tags,branches).','Wrong URL');
         return;
     end
-    if ~checkFolderExistence(fullfile(repoHome,'trunk', 'blocks'))
-        errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
+    if checkSvnUrl(handles.url)==-1
+        % Wrong URL, something wrong
+        errordlg('Cannot connect to given SVN-Repository URL. Please check URL.','Wrong URL');
         return;
     end
-    if ~checkFolderExistence(fullfile(repoHome,'trunk', 'help'))
-        errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
-        return;
+
+    d.setProgressStatusLabel('Checking local working copy...');
+    % Check for local working copy revision and repository folder (trunk, tags/.., branches/..
+    homeDir = getpref('RapidPrototypingSystem','HomeDir');
+    [revision, folder, repoHome]=checkLocalWorkingCopy(fullfile(homeDir, 'rps'));
+    handles.revision = revision;
+    handles.repoFolder = folder;
+
+    d.setProgressStatusLabel('Validating credentials...');
+    % Check if credentials are correct
+    if handles.credentialsNeeded == true
+        % needed, check if correct
+        if isequal(exist(fullfile('..','credentials.xml.aes'),'file'),2)
+            % Available
+            [username,password] = decryptCredentials();
+        else
+            % Password Missing
+            btn_saveCredentials_Callback(hObject, eventdata, handles);
+            error('Missing SVN Login/Password! Save credentials and press "Save" button again.');
+        end
+        % Check Password
+        if credentialsValiditySVN(handles.url, username, password)==1
+            % Could be correct
+        else
+            % Wrong
+            errordlg('SVN Login/Password seems to be wrong. Please re-enter your login details!','Wrong Login/Password!');
+            error('SVN Login/Password seems to be wrong. Please re-enter your login details!');
+        end
+    else
+        % No Password/Login needed
+        password='';
+        username='';
     end
+
+    d.setProgressStatusLabel('Validating Repository...');
+    % Check if url is the same repo as local working copy
+    if isempty(strfind(handles.url,repoHome))
+        % Another Repo URL, need to checkout/switch to new url/trunk...
+        % First check if new repo/trunk contains dir (rps,blocks,help)
+        if ~checkFolderExistence(fullfile(repoHome,'trunk', 'rps'))
+            errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
+            return;
+        end
+        if ~checkFolderExistence(fullfile(repoHome,'trunk', 'blocks'))
+            errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
+            return;
+        end
+        if ~checkFolderExistence(fullfile(repoHome,'trunk', 'help'))
+            errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
+            return;
+        end
+
+        choice = questdlg('You local repository differs from the given URL. Do you really want to switch to another repository?',...
+            'Switching Repository?', 'Yes','No','No');
+        switch choice
+            case 'Yes'
+                % TODO...
+            case 'No'
+                % NO
+                return;
+            otherwise
+                % NO
+                return;
+        end
+        %TODO: Switch/Relocate/Delete or Checkout (rps,blocks,help)
+        %       Delete rps folder while still using options.fig??????
+        %
+        % Call Function 
+        switchRepo = true;
+    else
+        % Same Repo, nothing to do right now.
+        switchRepo = false;
+    end
+
+    d.setProgressStatusLabel('Creating userconfig...');
+    docNode = com.mathworks.xml.XMLUtils.createDocument('userconfig');
+    docRootNode = docNode.getDocumentElement;
+    user_update = docNode.createElement('update'); 
+    updateInterval = docNode.createElement('updateInterval');
+    autoUpdate = docNode.createElement('autoUpdate');
+    repo = docNode.createElement('repo');
+    repoUrl = docNode.createElement('url');
+    repoFolder = docNode.createElement('folder');
+    repoRevision = docNode.createElement('revision'); 
+    repoCustomUrl = docNode.createElement('customUrl'); 
+    repoCredentialsNeeded = docNode.createElement('credentialsNeeded'); 
+
+    % Create update entries...
+    if str2num(get(handles.updateInterval_edit, 'String'))>0 && isnumeric(str2num(get(handles.updateInterval_edit, 'String')))
+        updateInterval.appendChild(docNode.createTextNode((get(handles.updateInterval_edit, 'String'))));
+    else
+        updateInterval.appendChild(docNode.createTextNode('10'));
+    end
+    autoUpdate.appendChild(docNode.createTextNode(num2str(handles.autoUpdate)));
+
+    % Create repo entries...
+    repoUrl.appendChild(docNode.createTextNode(handles.url));
+    repoCustomUrl.appendChild(docNode.createTextNode(num2str(handles.customUrl)));
+    repoCredentialsNeeded.appendChild(docNode.createTextNode(num2str(handles.credentialsNeeded)));
+    repoRevision.appendChild(docNode.createTextNode(handles.revision));
+    repoFolder.appendChild(docNode.createTextNode(handles.repoFolder));
+
+    user_update.appendChild(updateInterval);
+    user_update.appendChild(autoUpdate);
+    docRootNode.appendChild(user_update);
+    repo.appendChild(repoUrl);
+    repo.appendChild(repoFolder);
+    repo.appendChild(repoRevision);
+    repo.appendChild(repoCustomUrl);
+    repo.appendChild(repoCredentialsNeeded);
+    docRootNode.appendChild(repo);
+
+    % Generate userconfig.xml
+    xmlFileName = fullfile('..', 'userconfig.xml');
+    xmlwrite(xmlFileName,docNode);
+
+    hideLoadingAnimation(d);
     
-    choice = questdlg('You local repository differs from the given URL. Do you really want to switch to another repository?',...
-        'Switching Repository?', 'Yes','No','No');
-    switch choice
-        case 'Yes'
-            % TODO...
-        case 'No'
-            % NO
-            return;
-        otherwise
-            % NO
-            return;
+    disp(' ### DONE saving preferences!');
+    close(gcf);
+    
+    % Switch Repository if needed
+    if switchRepo==true
+        switchRepository(handles.url,username,password);
     end
-    %TODO: Switch/Relocate/Delete or Checkout (rps,blocks,help)
-    %       Delete rps folder while still using options.fig??????
-    %
-    % Call Function 
-    switchRepo = true;
-else
-    % Same Repo, nothing to do right now.
-    switchRepo = false;
+catch
+   hideLoadingAnimation(d); 
 end
-
-docNode = com.mathworks.xml.XMLUtils.createDocument('userconfig');
-docRootNode = docNode.getDocumentElement;
-user_update = docNode.createElement('update'); 
-updateInterval = docNode.createElement('updateInterval');
-autoUpdate = docNode.createElement('autoUpdate');
-repo = docNode.createElement('repo');
-repoUrl = docNode.createElement('url');
-repoFolder = docNode.createElement('folder');
-repoRevision = docNode.createElement('revision'); 
-repoCustomUrl = docNode.createElement('customUrl'); 
-repoCredentialsNeeded = docNode.createElement('credentialsNeeded'); 
-
-% Create update entries...
-if str2num(get(handles.updateInterval_edit, 'String'))>0 && isnumeric(str2num(get(handles.updateInterval_edit, 'String')))
-    updateInterval.appendChild(docNode.createTextNode((get(handles.updateInterval_edit, 'String'))));
-else
-    updateInterval.appendChild(docNode.createTextNode('10'));
-end
-autoUpdate.appendChild(docNode.createTextNode(num2str(handles.autoUpdate)));
-
-% Create repo entries...
-repoUrl.appendChild(docNode.createTextNode(handles.url));
-repoCustomUrl.appendChild(docNode.createTextNode(num2str(handles.customUrl)));
-repoCredentialsNeeded.appendChild(docNode.createTextNode(num2str(handles.credentialsNeeded)));
-repoRevision.appendChild(docNode.createTextNode(handles.revision));
-repoFolder.appendChild(docNode.createTextNode(handles.repoFolder));
-
-user_update.appendChild(updateInterval);
-user_update.appendChild(autoUpdate);
-docRootNode.appendChild(user_update);
-repo.appendChild(repoUrl);
-repo.appendChild(repoFolder);
-repo.appendChild(repoRevision);
-repo.appendChild(repoCustomUrl);
-repo.appendChild(repoCredentialsNeeded);
-docRootNode.appendChild(repo);
-
-% Generate userconfig.xml
-xmlFileName = fullfile('..', 'userconfig.xml');
-xmlwrite(xmlFileName,docNode);
-
-% Switch Repository if needed
-if switchRepo==true
-    switchRepository(handles.url,username,password);
-end
-disp(' ### DONE saving preferences!');
-close(gcf);
 
 
 function str = getCurrentPopupString(hh)
@@ -545,3 +557,4 @@ if strcmp(eventdata.Key,'f1')
     %open help
     showdemo options;
 end
+

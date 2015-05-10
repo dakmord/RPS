@@ -125,7 +125,7 @@ handles.output = hObject;
 guidata(hObject, handles);
 
 % Check if local repo is outdated
-checkForOutdated(hObject, handles)
+checkForOutdated(hObject, handles);
 
 % UIWAIT makes rps_GraphicalUserInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -198,6 +198,22 @@ d.setProgressStatusLabel('Please wait, updating /help/...');
 updateSVN(fullfile(handles.homeDir,'help'), username, password);
 d.setProgressStatusLabel('Please wait, updating /rps/...');
 updateSVN(fullfile(handles.homeDir,'rps'), username, password);
+
+%Updating gui... and configuration file
+d.setProgressStatusLabel('Please wait, updating gui...');
+[revision, folder, repoHomeUrl] = checkLocalWorkingCopy(fullfile(handles.homeDir,'rps'));
+handles.revision = revision;
+handles.repoFolder = folder;
+
+% Update handles
+guidata(hObject, handles);
+
+% Update GUI
+checkForOutdated(hObject, handles)
+
+% Store in userconfig.xml
+createUserconfigXML(hObject, handles);
+
 statusbar('');
 hideLoadingAnimation(d);
 
@@ -265,7 +281,7 @@ function file_preferences_Callback(hObject, eventdata, handles)
 %uiwait(options);
 enableDisableFig(gcf,'off');
 uiwait(options);
-loadUserDataToHandles(hObject, handles)
+loadUserDataToHandles(hObject, handles);
 enableDisableFig(gcf,'on');
 
 function loadUserDataToHandles(hObject,handles)
@@ -531,21 +547,6 @@ dateString =        ['#Date:     ' data{eventdata.Indices(1),3} ];
 outputText = sprintf('\n\n%s\n%s\n%s\n#Log:\n%s',revisionString, authorString, dateString,data{eventdata.Indices(1),4});
 disp(outputText);
 
-
-function d = showLoadingAnimation(windowName, loadingText)
-enableDisableFig(gcf,'off');
-d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar(windowName, []);
-d.setValue(0.25);                        % default = 0
-d.setProgressStatusLabel(loadingText);  % default = 'Please Wait'
-d.setSpinnerVisible(false);               % default = true
-d.setCircularProgressBar(true);         % default = false  (true means an indeterminate (looping) progress bar)
-d.setCancelButtonVisible(false);          % default = true
-d.setVisible(true);                      % default = false
-
-
-function hideLoadingAnimation(animationHandle)
-animationHandle.setVisible(false);
-enableDisableFig(gcf,'on');
 
 
 % --- Executes when entered data in editable cell(s) in log_table.
