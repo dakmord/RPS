@@ -434,11 +434,11 @@ end
 set(handles.log_table,'Data',log);
 handles.log = log;
 
-% Check if local repo is outdated
-checkForOutdated(hObject, handles);
-
 % Publish handles
 guidata(hObject, handles);
+
+% Check if local repo is outdated
+checkForOutdated(hObject, handles);
 
 % stop Animation/Statusbar
 statusbar('');
@@ -533,6 +533,7 @@ disp(outputText);
 
 
 function d = showLoadingAnimation(windowName, loadingText)
+enableDisableFig(gcf,'off');
 d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar(windowName, []);
 d.setValue(0.25);                        % default = 0
 d.setProgressStatusLabel(loadingText);  % default = 'Please Wait'
@@ -544,6 +545,7 @@ d.setVisible(true);                      % default = false
 
 function hideLoadingAnimation(animationHandle)
 animationHandle.setVisible(false);
+enableDisableFig(gcf,'on');
 
 
 % --- Executes when entered data in editable cell(s) in log_table.

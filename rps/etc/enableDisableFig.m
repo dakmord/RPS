@@ -93,7 +93,13 @@ function currentState = enableDisableFig(hFig, newState)
               end
               try
                   oldWarn = warning('off','MATLAB:hg:JavaSetHGProperty');
-                  set(jff,'Enabled',newState);          % accepts 'on'/'off'
+                  %set(jff,'Enabled',newState);          % accepts 'on'/'off'
+                  if strcmp(newState,'on')
+                      state = true;
+                  else
+                      state = false;
+                  end
+                  jff.setEnabled(state);
                   warning(oldWarn)
               catch
                   set(handle(jff),'Enabled',newState);  % accepts true/false
