@@ -15,7 +15,7 @@ else
     cmd=sprintf('%s %s %s %s --username %s --password %s', svnExe, ...
         command, custom, repository, username, password);
 end
-[status, cmdout] = dos(cmd, '-echo');
+[status, cmdout] = dos(cmd);
 
 filtered = regexp(cmdout, '[\f\n\r]', 'split');
 [tx, ty] = size(filtered);

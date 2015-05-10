@@ -229,9 +229,18 @@ function btn_save_Callback(hObject, eventdata, handles)
 if handles.customUrl==1
     % Custom URL
     handles.url = get(handles.customUrl_edit, 'String');
+    handles.credentialsNeeded = false;
 else
     % Popupmenu URL
     handles.url = getCurrentPopupString(handles.popupmenu_url);
+    % Check if Public/Private
+    if strfind(handles.url, '(PUBLIC)') && get(handles.credentials_cb,'Value')==0
+        % Public
+        handles.credentialsNeeded = false;
+    else
+        % Private
+        handles.credentialsNeeded = true;
+    end
 end
 if ~ismepty(strfind(handles.url),'trunk') || ...
         ~ismepty(strfind(handles.url),'tags') || ...
@@ -251,6 +260,31 @@ homeDir = getpref('RapidPrototypingSystem','HomeDir');
 [revision, folder, repoHome]=checkLocalWorkingCopy(fullfile(homeDir, 'rps'));
 handles.revision = revision;
 handles.repoFolder = folder;
+
+% Check if credentials are correct
+if handles.credentialsNeeded == true
+    % needed, check if correct
+    if isequal(exist(fullfile('..','credentials.xml.aes'),'file'),2)
+        % Available
+        [password, username] = decryptCredentials();
+    else
+        % Password Missing
+        btn_saveCredentials_Callback(hObject, eventdata, handles);
+        error('Missing SVN Login/Password! Save credentials and press "Save" button again.');
+    end
+    % Check Password
+    if credentialsValiditySVN(repository, username, password)==1
+        % Could be correct
+    else
+        % Wrong
+        errordlg('SVN Login/Password seems to be wrong. Please re-enter your login details!','Wrong Login/Password!');
+        error('SVN Login/Password seems to be wrong. Please re-enter your login details!');
+    end
+else
+    % No Password/Login needed
+    password='';
+    username='';
+end
 
 % Check if url is the same repo as local working copy
 if isempty(strfind(handles.url,repoHome))
@@ -285,9 +319,10 @@ if isempty(strfind(handles.url,repoHome))
     %       Delete rps folder while still using options.fig??????
     %
     % Call Function 
-    % -> switchRepository(repoUrl,credentialsNeeded)
+    switchRepo = true;
 else
     % Same Repo, nothing to do right now.
+    switchRepo = false;
 end
 
 docNode = com.mathworks.xml.XMLUtils.createDocument('userconfig');
@@ -330,6 +365,11 @@ docRootNode.appendChild(repo);
 % Generate userconfig.xml
 xmlFileName = fullfile('..', 'userconfig.xml');
 xmlwrite(xmlFileName,docNode);
+
+% Switch Repository if needed
+if switchRepo==true
+    switchRepository(handles.url,username,password);
+end
 
 function str = getCurrentPopupString(hh)
 %# getCurrentPopupString returns the currently selected string in the popupmenu with handle hh
