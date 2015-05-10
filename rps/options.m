@@ -234,7 +234,7 @@ else
     % Popupmenu URL
     handles.url = getCurrentPopupString(handles.popupmenu_url);
     % Check if Public/Private
-    if strfind(handles.url, '(PUBLIC)') && get(handles.credentials_cb,'Value')==0
+    if ~isempty(strfind(handles.url, '(PUBLIC)')) && get(handles.credentials_cb,'Value')==0
         % Public
         handles.credentialsNeeded = false;
     else
