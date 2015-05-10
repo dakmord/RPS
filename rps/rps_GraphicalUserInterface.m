@@ -134,8 +134,10 @@ checkForOutdated(hObject, handles);
 function checkForOutdated(hObject, handles)
 if handles.revision<str2num(handles.log{1,1})
     set(handles.outdated_text,'Visible','on');
+    set(handles.revision_edit, 'String',num2str(handles.revision));
 else
     set(handles.outdated_text,'Visible','off');
+    set(handles.revision_edit, 'String',num2str(handles.revision));
 end
 
 
@@ -211,11 +213,12 @@ guidata(hObject, handles);
 % Update GUI
 checkForOutdated(hObject, handles)
 
+statusbar('');
+hideLoadingAnimation(d);
+
 % Store in userconfig.xml
 createUserconfigXML(hObject, handles);
 
-statusbar('');
-hideLoadingAnimation(d);
 
 % --------------------------------------------------------------------
 function Untitled_11_Callback(hObject, eventdata, handles)
