@@ -211,7 +211,7 @@ handles.repoFolder = folder;
 guidata(hObject, handles);
 
 % Update GUI
-checkForOutdated(hObject, handles)
+checkForOutdated(hObject, handles);
 
 statusbar('');
 hideLoadingAnimation(d);

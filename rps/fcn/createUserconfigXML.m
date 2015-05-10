@@ -1,5 +1,4 @@
 function createUserconfigXML(hObject, handles)
-data = guidata(hObject)
 
 homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 
@@ -23,7 +22,7 @@ autoUpdate.appendChild(docNode.createTextNode(num2str(handles.autoUpdate)));
 repoUrl.appendChild(docNode.createTextNode(handles.url));
 repoCustomUrl.appendChild(docNode.createTextNode(num2str(handles.customUrl)));
 repoCredentialsNeeded.appendChild(docNode.createTextNode(num2str(handles.credentialsNeeded)));
-repoRevision.appendChild(docNode.createTextNode(handles.revision));
+repoRevision.appendChild(docNode.createTextNode(num2str(handles.revision)));
 repoFolder.appendChild(docNode.createTextNode(handles.repoFolder));
 
 user_update.appendChild(updateInterval);
