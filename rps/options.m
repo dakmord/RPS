@@ -130,7 +130,12 @@ handles.revision = revision;
 set(handles.customUrl_cb, 'Value', customUrl);
 set(handles.credentials_cb, 'Value', credentialsNeeded);
 set(handles.checkUpdates_cb, 'Value', autoUpdate);
-set(handles.updateInterval_edit, 'Value', updateInterval);
+if handles.autoUpdate==1
+    set(handles.updateInterval_edit,'Enable','on')
+else
+    set(handles.updateInterval_edit,'Enable','off')
+end
+set(handles.updateInterval_edit, 'String', updateInterval);
 if customUrl==true
     set(handles.customUrl_edit, 'Enable', 'on', 'String', url);
     set(handles.popupmenu_url, 'Enable', 'off');
@@ -225,11 +230,17 @@ function btn_save_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 % Get previous userconfig data if available
 
+% Get actualized data
+handles.updateInterval = str2num(get(handles.updateInterval_edit,'String'));
+handles.autoUpdate = get(handles.checkUpdates_cb,'Value');
+handles.customUrl = get(handles.customUrl_cb,'Value');
+handles.credentialsNeeded = get(handles.credentials_cb,'Value');
+
+
 % Check if Repo URL is valid
 if handles.customUrl==1
     % Custom URL
     handles.url = get(handles.customUrl_edit, 'String');
-    handles.credentialsNeeded = false;
 else
     % Popupmenu URL
     handles.url = getCurrentPopupString(handles.popupmenu_url);
@@ -332,7 +343,7 @@ end
 docNode = com.mathworks.xml.XMLUtils.createDocument('userconfig');
 docRootNode = docNode.getDocumentElement;
 user_update = docNode.createElement('update'); 
-updateInterval = docNode.createElement('updateinterval');
+updateInterval = docNode.createElement('updateInterval');
 autoUpdate = docNode.createElement('autoUpdate');
 repo = docNode.createElement('repo');
 repoUrl = docNode.createElement('url');
@@ -426,11 +437,11 @@ function btn_saveCredentials_Callback(hObject, eventdata, handles)
 % hObject    handle to btn_saveCredentials (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[Password, UserName] = passwordEntryDialog('enterUserName', true,'ValidatePassword', true);
+[Password, UserName] = passwordEntryDialog('enterUserName', true,'ValidatePassword', true,'CheckPasswordLength',false,'WindowName','SVN Login/Password');
 if Password >0
     encryptCredentials(UserName, Password);
 end
-if exist([handles.parentDir 'gui\cfg\credentials.xml.aes'],'file')==2
+if exist(fullfile('..','credentials.xml.aes'),'file')==2
     set(handles.text_credentials, 'String', 'Credentials available...', 'ForegroundColor', [0 0.5 0]);
 else
     set(handles.text_credentials, 'String', 'No Credentials stored...', 'ForegroundColor', 'red');
@@ -486,10 +497,13 @@ function checkUpdates_cb_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of checkUpdates_cb
 if get(handles.checkUpdates_cb,'Value')==1
     set(handles.updateInterval_edit,'Enable', 'on');
-    handles.updateInterval = true;
+    handles.updateInterval = str2num(get(handles.updateInterval_edit,'String'));
+    handles.autoUpdate = true;
 else
     set(handles.updateInterval_edit,'Enable', 'off');
+    handles.updateInterval = 0;
     handles.updateInterval = false;
+    handles.autoUpdate = false;
 end
 
 % --- Executes on button press in credentials_cb.
