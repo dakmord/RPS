@@ -17,6 +17,7 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
     try
         xmlOutput = xml2struct(fullfile(pwd,'cmdout.xml'));
         revision = xmlOutput.info.entry.Attributes.revision;
+        delete('cmdout.xml');
     catch
        error('System kann den angegebenen Pfad nicht finden svn.exe info <workingCopy>') ;
     end
