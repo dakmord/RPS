@@ -281,14 +281,14 @@ if handles.credentialsNeeded == true
     % needed, check if correct
     if isequal(exist(fullfile('..','credentials.xml.aes'),'file'),2)
         % Available
-        [password, username] = decryptCredentials();
+        [username,password] = decryptCredentials();
     else
         % Password Missing
         btn_saveCredentials_Callback(hObject, eventdata, handles);
         error('Missing SVN Login/Password! Save credentials and press "Save" button again.');
     end
     % Check Password
-    if credentialsValiditySVN(repository, username, password)==1
+    if credentialsValiditySVN(handles.url, username, password)==1
         % Could be correct
     else
         % Wrong
@@ -385,6 +385,8 @@ xmlwrite(xmlFileName,docNode);
 if switchRepo==true
     switchRepository(handles.url,username,password);
 end
+disp('### DONE Saving Preferences!');
+
 
 function str = getCurrentPopupString(hh)
 %# getCurrentPopupString returns the currently selected string in the popupmenu with handle hh
