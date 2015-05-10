@@ -1,10 +1,10 @@
 function [revision, folder, repoHomeUrl] = checkLocalWorkingCopy(workingCopyDir)
 %Define important Paths which will be needed ...
-svnExe = fullfile('..','etc','svn','svn.exe');
+homePath = getpref('RapidPrototypingSystem','HomeDir');
+svnExe = fullfile(homePath,'rps','etc','svn','svn.exe');
 
 %Check size of Files which will be transfered..
 command='info';
-
 
 cmd=sprintf('%s %s %s --xml', svnExe, command, workingCopyDir);
 
@@ -14,9 +14,12 @@ fprintf(fid,'%s',cmdout);
 fclose(fid);
 
 if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
-    xmlOutput = xml2struct(fullfile(pwd,'cmdout.xml'));
-    revision = xmlOutput.info.entry.Attributes.revision;
-    
+    try
+        xmlOutput = xml2struct(fullfile(pwd,'cmdout.xml'));
+        revision = xmlOutput.info.entry.Attributes.revision;
+    catch
+       error('System kann den angegebenen Pfad nicht finden svn.exe info <workingCopy>') ;
+    end
     % Find out current repo-folder (if we are in trunk,branches or tags..)
     tmp = strrep(workingCopyDir,'\','/');
     if strcmp(tmp(length(tmp)),'/')

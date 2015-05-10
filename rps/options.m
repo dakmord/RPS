@@ -241,7 +241,11 @@ else
         % Private
         handles.credentialsNeeded = true;
     end
+    % Filter private/public out
+    handles.url = strsplit(handles.url, ' (P');
+    handles.url = handles.url{1};
 end
+
 if ~isempty(strfind(handles.url,'trunk')) || ...
         ~isempty(strfind(handles.url,'tags')) || ...
         ~isempty(strfind(handles.url,'branches'))
@@ -343,12 +347,12 @@ if str2num(get(handles.updateInterval_edit, 'String'))>0 && isnumeric(str2num(ge
 else
     updateInterval.appendChild(docNode.createTextNode('10'));
 end
-autoUpdate.appendChild(docNode.createTextNode(handles.autoUpdate));
+autoUpdate.appendChild(docNode.createTextNode(num2str(handles.autoUpdate)));
 
 % Create repo entries...
 repoUrl.appendChild(docNode.createTextNode(handles.url));
-repoCustomUrl.appendChild(docNode.createTextNode(handles.customUrl));
-repoCredentialsNeeded.appendChild(docNode.createTextNode(handles.credentialsNeeded));
+repoCustomUrl.appendChild(docNode.createTextNode(num2str(handles.customUrl)));
+repoCredentialsNeeded.appendChild(docNode.createTextNode(num2str(handles.credentialsNeeded)));
 repoRevision.appendChild(docNode.createTextNode(handles.revision));
 repoFolder.appendChild(docNode.createTextNode(handles.repoFolder));
 
