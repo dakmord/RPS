@@ -219,6 +219,8 @@ hideLoadingAnimation(d);
 % Store in userconfig.xml
 createUserconfigXML(hObject, handles);
 
+figure(gcf);
+
 
 % --------------------------------------------------------------------
 function Untitled_11_Callback(hObject, eventdata, handles)
@@ -286,6 +288,7 @@ enableDisableFig(gcf,'off');
 uiwait(options);
 loadUserDataToHandles(hObject, handles);
 enableDisableFig(gcf,'on');
+figure(gcf);
 
 function loadUserDataToHandles(hObject,handles)
 % Check if it userconfig.xml is missing
@@ -462,6 +465,7 @@ checkForOutdated(hObject, handles);
 % stop Animation/Statusbar
 statusbar('');
 hideLoadingAnimation(animationHandle);
+figure(gcf);
 
 
 
