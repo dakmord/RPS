@@ -385,7 +385,8 @@ xmlwrite(xmlFileName,docNode);
 if switchRepo==true
     switchRepository(handles.url,username,password);
 end
-disp('### DONE Saving Preferences!');
+disp(' ### DONE saving preferences!');
+close(gcf);
 
 
 function str = getCurrentPopupString(hh)

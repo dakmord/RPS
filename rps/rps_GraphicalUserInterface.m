@@ -22,7 +22,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 09-May-2015 11:02:16
+% Last Modified by GUIDE v2.5 10-May-2015 13:59:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,6 +52,66 @@ function rps_GraphicalUserInterface_OpeningFcn(hObject, eventdata, handles, vara
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to rps_GraphicalUserInterface (see VARARGIN)
 
+% Save rps home path
+handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
+% Check if it userconfig.xml is missing
+if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
+    % existing, read userconfig and save in handles
+    [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
+    repoFolder, revision] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
+
+    % create basic handles
+    handles.updateInterval = updateInterval;
+    handles.autoUpdate = autoUpdate;
+    handles.customUrl = customUrl;
+    handles.credentialsNeeded = credentialsNeeded;
+    handles.url = url;
+    handles.repoFolder = repoFolder;
+    handles.revision = revision;
+    handles.maxLogEntries = 20;
+else
+    % not existing, end and open preferences!
+    disp('### Missing userconfig.xml in your folder. Opening preferences...');
+    uiwait(options);
+    pause(0.5);
+    if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
+        % existing
+    else
+        % still missing
+        error('Missing userconfig.xml in your Rapid-Prototyping-System directory! Re-run gui and fill in preferences window!');
+    end
+    
+end
+
+% Basic Initialization...
+set(handles.repo_edit, 'String', handles.repoFolder);
+set(handles.revision_edit, 'String', handles.revision);
+
+% Fill log with actual stuff
+if handles.credentialsNeeded==1
+    % login details
+    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
+        % Available
+        [username,password] = decryptCredentials();
+    else
+        % Password Missing
+        error('Missing SVN Login/Password!');
+    end
+    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
+else
+    % without
+    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
+end
+set(handles.log_table,'Data',log);
+handles.log = log;
+
+% Check if local repo is outdated
+checkForOutdated(hObject, handles);
+
+% Statusbar with url...
+
+
 % Choose default command line output for rps_GraphicalUserInterface
 handles.output = hObject;
 
@@ -60,6 +120,14 @@ guidata(hObject, handles);
 
 % UIWAIT makes rps_GraphicalUserInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
+
+
+function checkForOutdated(hObject, handles)
+if handles.revision<handles.log{1,1}
+    set(handles.outdated_text,'Visible','on');
+else
+    set(handles.outdated_text,'Visible','off');
+end
 
 
 % --- Outputs from this function are returned to the command line.
@@ -242,18 +310,19 @@ function Untitled_28_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_29_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_29 (see GCBO)
+function supportPkg_mathworks_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_mathworks (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+targetinstaller;
 
 % --------------------------------------------------------------------
-function Untitled_30_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_30 (see GCBO)
+function supportPkg_arduino_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_arduino (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+open(fullfile('etc','arduino.mlpkginstall'));
 
 % --------------------------------------------------------------------
 function Untitled_31_Callback(hObject, eventdata, handles)
@@ -270,11 +339,11 @@ function Untitled_32_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_33_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_33 (see GCBO)
+function supportPkg_tm4c1294npdt_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_tm4c1294npdt (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+hw_targetInstaller_tm4c1294();
 
 % --- Executes on button press in checkUpdates_btn.
 function checkUpdates_btn_Callback(hObject, eventdata, handles)
@@ -327,3 +396,48 @@ function revision_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes when selected cell(s) is changed in log_table.
+function log_table_CellSelectionCallback(hObject, eventdata, handles)
+% hObject    handle to log_table (see GCBO)
+% eventdata  structure with the following fields (see UITABLE)
+%	Indices: row and column indices of the cell(s) currently selecteds
+% handles    structure with handles and user data (see GUIDATA)
+
+data = get(handles.log_table,'Data');
+
+authorString =      ['Author:   ' data{eventdata.Indices(1),2} ];
+revisionString =    ['Revision: ' data{eventdata.Indices(1),1} ];
+dateString =        ['Date:     ' data{eventdata.Indices(1),3} ];
+outputText = sprintf('\n%s\n%s\n%s\nLog:\n%s',revisionString, authorString, dateString,data{eventdata.Indices(1),4});
+disp(outputText);
+
+
+% --- Executes when entered data in editable cell(s) in log_table.
+function log_table_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to log_table (see GCBO)
+% eventdata  structure with the following fields (see UITABLE)
+%	Indices: row and column indices of the cell(s) edited
+%	PreviousData: previous data for the cell(s) edited
+%	EditData: string(s) entered by the user
+%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
+%	Error: error string when failed to convert EditData to appropriate value for Data
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function log_table_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to log_table (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on key press with focus on log_table and none of its controls.
+function log_table_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to log_table (see GCBO)
+% eventdata  structure with the following fields (see UITABLE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
