@@ -1,6 +1,6 @@
 function [isExisting] = checkFolderExistence(urlToRepoFolder)
-%Define important Paths which will be needed ...
-svnExe = fullfile('..','etc','svn','svn.exe');
+homePath = getpref('RapidPrototypingSystem', 'HomeDir');
+svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
 
 %Check size of Files which will be transfered..
 command='ls';

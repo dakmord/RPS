@@ -1,7 +1,7 @@
 function [validity] = credentialsValiditySVN(repository, username, password)
 %Define important Paths which will be needed ...
-homeDir = getpref('RapidPrototypingSystem','HomeDir');
-svnExe = fullfile(homeDir, 'rps','etc', 'svn','svn.exe');
+homePath = getpref('RapidPrototypingSystem', 'HomeDir');
+svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
 
 %Check size of Files which will be transfered..
 command='info';

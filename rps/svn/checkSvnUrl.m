@@ -1,7 +1,7 @@
 function [isValid] = checkSvnUrl(repository)
 %Define important Paths which will be needed ...
-pref_group = 'RapidPrototypingSystem';
-svnExe = fullfile(getpref(pref_group,'HomeDir'), 'rps','etc','svn','svn.exe');
+homePath = getpref('RapidPrototypingSystem', 'HomeDir');
+svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
 
 %Check size of Files which will be transfered..
 command='info';

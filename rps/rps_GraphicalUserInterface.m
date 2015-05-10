@@ -22,7 +22,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 10-May-2015 15:25:32
+% Last Modified by GUIDE v2.5 10-May-2015 18:49:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -174,8 +174,8 @@ function Untitled_8_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_9_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_9 (see GCBO)
+function svn_update_Callback(hObject, eventdata, handles)
+% hObject    handle to svn_update (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -244,7 +244,41 @@ function file_preferences_Callback(hObject, eventdata, handles)
 %uiwait(options);
 enableDisableFig(gcf,'off');
 uiwait(options);
+loadUserDataToHandles(hObject, handles)
 enableDisableFig(gcf,'on');
+
+function loadUserDataToHandles(hObject,handles)
+% Check if it userconfig.xml is missing
+if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
+    % existing, read userconfig and save in handles
+    [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
+    repoFolder, revision] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
+
+    % create basic handles
+    handles.updateInterval = updateInterval;
+    handles.autoUpdate = autoUpdate;
+    handles.customUrl = customUrl;
+    handles.credentialsNeeded = credentialsNeeded;
+    handles.url = url;
+    handles.repoFolder = repoFolder;
+    handles.revision = revision;
+    handles.maxLogEntries = 20;
+else
+    % not existing, end and open preferences!
+    disp('### Missing userconfig.xml in your folder. Opening preferences...');
+    uiwait(options);
+    pause(0.5);
+    if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
+        % existing
+    else
+        % still missing
+        error('Missing userconfig.xml in your Rapid-Prototyping-System directory! Re-run gui and fill in preferences window!');
+    end
+    
+end
+% Update handles structure
+guidata(hObject, handles);
+
 
 % --------------------------------------------------------------------
 function Untitled_19_Callback(hObject, eventdata, handles)
@@ -261,11 +295,11 @@ function Untitled_20_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_21_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_21 (see GCBO)
+function svn_refresh_Callback(hObject, eventdata, handles)
+% hObject    handle to svn_refresh (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+checkUpdates_btn_Callback(hObject, eventdata, handles);
 
 % --------------------------------------------------------------------
 function Untitled_22_Callback(hObject, eventdata, handles)
@@ -351,8 +385,33 @@ function checkUpdates_btn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 sb = statusbar('Refreshing Recent Changes..');
-set(sb.CornerGrip, 'visible','off');
+sb.CornerGrip.setVisible(false);
+%set(sb.CornerGrip, 'visible','off');
 
+% Fill log with actual stuff
+if handles.credentialsNeeded==1
+    % login details
+    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
+        % Available
+        [username,password] = decryptCredentials();
+    else
+        % Password Missing
+        error('Missing SVN Login/Password!');
+    end
+    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
+else
+    % without
+    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
+end
+set(handles.log_table,'Data',log);
+handles.log = log;
+
+% Check if local repo is outdated
+checkForOutdated(hObject, handles);
+
+% Publish handles
+guidata(hObject, handles);
+statusbar('');
 
 
 function repo_edit_Callback(hObject, eventdata, handles)

@@ -1,9 +1,7 @@
 function [] = checkoutSVN(repository, destination, depth, username, password)
 %Define important Paths which will be needed ...
-homePath = getParentDir(2, '\');
-svnPath = [homePath 'gui\etc\svn'];
-svnExe = [svnPath '\svn.exe'];
-svnBench = [svnPath '\svn-bench.exe'];
+homePath = getpref('RapidPrototypingSystem', 'HomeDir');
+svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
 
 %Check size of Files which will be transfered..
 command='checkout';

@@ -1,9 +1,7 @@
 function [] = exportSVN(url, dest, username, password)
 % Get Parent Dir _> ...\Rapid-Prototyping-System\
-homePath = getParentDir(2, '\');
-% SVN Paths..
-svnPath = [homePath 'gui\etc\svn'];
-svnExe = [svnPath '\svn.exe'];
+homePath = getpref('RapidPrototypingSystem', 'HomeDir');
+svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
 
 %Update current folder..
 command='export';

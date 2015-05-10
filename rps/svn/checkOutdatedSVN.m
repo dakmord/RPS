@@ -1,11 +1,6 @@
 function [outdatedFiles] = checkOutdatedSVN(url, username, password)
-% Get Parent Dir _> ...\Rapid-Prototyping-System\
-homePath = getParentDir(2, '\');
-
-% SVN Paths..
-svnPath = [homePath 'gui\etc\svn'];
-svnExe = [svnPath '\svn.exe'];
-svnBench = [svnPath '\svn-bench.exe'];
+homePath = getpref('RapidPrototypingSystem', 'HomeDir');
+svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
 
 %Check size of Files which will be transfered..
 command='status';
