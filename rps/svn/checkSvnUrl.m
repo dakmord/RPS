@@ -1,4 +1,4 @@
-function [validity] = checkSvnUrl(repository)
+function [isValid] = checkSvnUrl(repository)
 %Define important Paths which will be needed ...
 pref_group = 'RapidPrototypingSystem';
 svnExe = fullfile(getpref(pref_group,'HomeDir'), 'rps','etc','svn','svn.exe');
@@ -10,16 +10,14 @@ custom='-r HEAD';
 
 cmd=sprintf('%s %s %s %s', svnExe, command, custom, repository);
 
-[status, cmdout] = dos(cmd, '-echo');
+[status, cmdout] = dos(cmd);
 
-filtered = regexp(cmdout, '[\f\n\r]', 'split');
-[tx, ty] = size(filtered);
-if ty>=10
-    % URL correct
-    validity = 1;
+if ~isempty(strfind(cmdout, 'E160013')) || ~isempty(strfind(cmdout, 'E200009'))
+    % Error
+    isValid = -1;
 else
-    validity = 0;
-    % URL incorrect
+    % Valid
+    isValid = 1;
 end
 
 end

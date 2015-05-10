@@ -242,14 +242,14 @@ else
         handles.credentialsNeeded = true;
     end
 end
-if ~ismepty(strfind(handles.url),'trunk') || ...
-        ~ismepty(strfind(handles.url),'tags') || ...
-        ~ismepty(strfind(handles.url),'branches')
+if ~isempty(strfind(handles.url,'trunk')) || ...
+        ~isempty(strfind(handles.url,'tags')) || ...
+        ~isempty(strfind(handles.url,'branches'))
     % Error wrong url given
     errordlg('Please delete subfolders in URL (e.g. trunk,tags,branches).','Wrong URL');
     return;
 end
-if checkSvnUrl(repository)==-1
+if checkSvnUrl(handles.url)==-1
     % Wrong URL, something wrong
     errordlg('Cannot connect to given SVN-Repository URL. Please check URL.','Wrong URL');
     return;
