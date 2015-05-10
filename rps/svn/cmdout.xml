@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   path="C:\Users\q365198\Desktop\BMWSvn\trunk\rps"
+   revision="4085"
+   kind="dir">
+<url>https://asc-repo.bmwgroup.net/svn/asc025/Projects/RapidPrototypingSystem/trunk/rps</url>
+<relative-url>^/Projects/RapidPrototypingSystem/trunk/rps</relative-url>
+<repository>
+<root>https://asc-repo.bmwgroup.net/svn/asc025</root>
+<uuid>44d95480-9054-11e0-b7a2-c336900d1cbe</uuid>
+</repository>
+<wc-info>
+<wcroot-abspath>C:/Users/q365198/Desktop/BMWSvn</wcroot-abspath>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+</wc-info>
+<commit
+   revision="4067">
+<author>Daniel.Schneider(14806)</author>
+<date>2015-04-24T11:50:41.249842Z</date>
+</commit>
+</entry>
+</info>

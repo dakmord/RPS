@@ -1,0 +1,22 @@
+<!-- 
+		License:	Please fill in if it is possible...
+					and so on....
+					
+		File:		info.xml
+		Created: 	26.02.2015
+		Author:		Daniel Schneider
+		Description:This file specifies the name and icon for the matlab documentation
+					and is needed to identify your needed html files.
+		--> 
+<productinfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:noNamespaceSchemaLocation="optional">
+    <?xml-stylesheet type="text/xsl"href="optional"?>
+     
+    <matlabrelease>2013b</matlabrelease>
+    <name>Rapid Embedded Prototyping System</name>
+    <type>toolbox</type>
+    <icon></icon>
+    <help_location>html</help_location>
+    <help_contents_icon>$toolbox/matlab/icons/bookicon.gif</help_contents_icon>
+
+</productinfo>
