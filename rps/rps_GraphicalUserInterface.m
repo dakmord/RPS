@@ -22,7 +22,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 10-May-2015 19:45:03
+% Last Modified by GUIDE v2.5 11-May-2015 11:49:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,6 +52,13 @@ function rps_GraphicalUserInterface_OpeningFcn(hObject, eventdata, handles, vara
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to rps_GraphicalUserInterface (see VARARGIN)
 
+% Custom GUI Icon
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+jframe=get(hObject,'javaframe');
+jIcon=javax.swing.ImageIcon('C:\Users\q365198\Desktop\Rapid-Prototyping-System\rps\etc\bmw_icons_18\bmw_icon.png');
+jframe.setFigureIcon(jIcon);
+
+
 % Save rps home path
 handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 
@@ -63,7 +70,6 @@ s = SplashScreen( 'Rapid-Prototyping-System', 'splashScreen.png', ...
 s.addText( 40, 50, 'Rapid-Prototyping-System', 'FontSize', 22, 'Color', 'white' ,'FontWeight','bold');
 s.addText( 40, 120, 'v0.8', 'FontSize', 22, 'Color', 'white' );
 s.addText( 200, 270, 'Loading...', 'FontSize', 30, 'Color', 'white','FontWeight','bold' );
-
 
 % Check if it userconfig.xml is missing
 if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
@@ -124,11 +130,15 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
+% Create Menu Icons
+%addMenuIcons(gcf, handles)
+
 % Check if local repo is outdated
 checkForOutdated(hObject, handles);
 
 % UIWAIT makes rps_GraphicalUserInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
+
 
 
 function checkForOutdated(hObject, handles)
@@ -150,6 +160,13 @@ function varargout = rps_GraphicalUserInterface_OutputFcn(hObject, eventdata, ha
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+
+
+function addMenuIcons(figure, handles)
+
+set(handles.file_new, 'UserData', 'BMW-neg_act_logout_18_o.png');
+% Set the icons 
+Figure_Menu_Add_Icons(figure);
 
 
 % --------------------------------------------------------------------
@@ -230,8 +247,8 @@ function Untitled_11_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_2_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_2 (see GCBO)
+function file_new_Callback(hObject, eventdata, handles)
+% hObject    handle to file_new (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -272,11 +289,14 @@ function Untitled_14_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_16_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_16 (see GCBO)
+function supportPkg_url_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_url (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+enableDisableFig(gcf,'off');
+uiwait(supportPkg_url);
+enableDisableFig(gcf,'on');
+figure(gcf);
 
 % --------------------------------------------------------------------
 function file_preferences_Callback(hObject, eventdata, handles)
@@ -335,11 +355,14 @@ function Untitled_19_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_20_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_20 (see GCBO)
+function help_about_Callback(hObject, eventdata, handles)
+% hObject    handle to help_about (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+enableDisableFig(gcf,'off');
+uiwait(about);
+enableDisableFig(gcf,'on');
+figure(gcf)
 
 % --------------------------------------------------------------------
 function svn_refresh_Callback(hObject, eventdata, handles)
@@ -356,36 +379,36 @@ function Untitled_22_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_23_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_23 (see GCBO)
+function file_rttModel_Callback(hObject, eventdata, handles)
+% hObject    handle to file_rttModel (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_24_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_24 (see GCBO)
+function file_legacyCode_Callback(hObject, eventdata, handles)
+% hObject    handle to file_legacyCode (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_26_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_26 (see GCBO)
+function svn_branch_Callback(hObject, eventdata, handles)
+% hObject    handle to svn_branch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_27_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_27 (see GCBO)
+function svn_switch_Callback(hObject, eventdata, handles)
+% hObject    handle to svn_switch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_28_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_28 (see GCBO)
+function supportPkg_install_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_install (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -413,8 +436,8 @@ function Untitled_31_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function Untitled_32_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_32 (see GCBO)
+function supportPkg_custom_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_custom (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
