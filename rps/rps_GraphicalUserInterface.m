@@ -22,7 +22,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 11-May-2015 11:49:40
+% Last Modified by GUIDE v2.5 12-May-2015 22:02:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -372,8 +372,8 @@ function svn_refresh_Callback(hObject, eventdata, handles)
 checkUpdates_btn_Callback(hObject, eventdata, handles);
 
 % --------------------------------------------------------------------
-function Untitled_22_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_22 (see GCBO)
+function preferences_default_Callback(hObject, eventdata, handles)
+% hObject    handle to preferences_default (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -386,10 +386,14 @@ function file_rttModel_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function file_legacyCode_Callback(hObject, eventdata, handles)
-% hObject    handle to file_legacyCode (see GCBO)
+function new_legacyCode_Callback(hObject, eventdata, handles)
+% hObject    handle to new_legacyCode (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+enableDisableFig(gcf,'off');
+uiwait(legacyCodeHelper);
+enableDisableFig(gcf,'on');
+figure(gcf);
 
 
 % --------------------------------------------------------------------
@@ -636,3 +640,34 @@ function repository_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --------------------------------------------------------------------
+function Untitled_21_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_21 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function preferences_model_Callback(hObject, eventdata, handles)
+% hObject    handle to preferences_model (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function new_model_Callback(hObject, eventdata, handles)
+% hObject    handle to new_model (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+model = new_system('default_model','Model');
+open_system(model);
+
+% --------------------------------------------------------------------
+function new_library_Callback(hObject, eventdata, handles)
+% hObject    handle to new_library (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+model = new_system('default_model','Library');
+open_system(model);

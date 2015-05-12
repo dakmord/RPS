@@ -99,6 +99,9 @@ function btn_ok_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Start loading screen..
+
+
 % Actualize Every Handle
 handles.parameterizedSample = get(handles.cb_parameterizedSample, 'Value');
 handles.showBlockPreview = get(handles.cb_blockPreview, 'Value');
@@ -165,6 +168,9 @@ else
     spec.Options.language = 'C';
 end
 
+% Test Options
+%spec.Options.singleCPPMexFile = true;
+
 % Change to output Path
 currentPath = pwd;
 
@@ -176,11 +182,12 @@ else
     mkdir(handles.outputPath);
     cd(handles.outputPath);
 end
+
 try
     % Compile
     legacy_code('sfcn_cmex_generate', spec);
     legacy_code('compile', spec);
-
+    legacy_code('rtwmakecfg_generate', spec);
     % Show Block preview in model?
     if handles.showBlockPreview==true
         legacy_code('slblock_generate', spec);
@@ -195,6 +202,7 @@ try
     cd(currentPath);
 catch
     cd(currentPath);
+    error('Error compiling s-function using legacyCodeTool...');
 end
 
 
