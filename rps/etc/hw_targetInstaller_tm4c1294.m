@@ -1,4 +1,4 @@
-function hw_targetInstaller_tm4c1294(varargin)
+function hw_targetInstaller_tm4c1294()
 %%
 % ex= hwconnectinstaller. Setup. get( ) ; 
 hwconnectinstaller.show(  );
@@ -11,33 +11,59 @@ root=ex.getRoot;
 %setup=get(root,'MCOSObjectReference');
 setup = root.getMCOSObjectReference;
 
-if nargin == 0
-    selected_mirror = get_repo_url('real');
-else
-    selected_mirror = get_repo_url('bmw');
-end
+selected_mirror = get_repo_url();
+
 
 setup.Installer.XmlHttp=selected_mirror;
 %setup.CurrentStep.next('');
 setup.Steps.Children(1).Children(3)=[]; % license page
 setup.Steps.Children(1).Children(2)=[]; % login page
 setup.CurrentStep.next('');
-ex.title=[ex.title ' BMW Repository'];
-setup.Steps.Children(1).StepData.Labels.Internet='From BMW Exchange Repository (Recommended)';
+ex.title=[ex.title ' Custom Repository'];
+setup.Steps.Children(1).StepData.Labels.Internet=['Custom Repository (' selected_mirror ')'];
 ex.show;
 %ex.showTreeView(true);
 end
 
-function url = get_repo_url(name)
-switch name
-    case {'real', '1'}
-        %url = 'https://bitbucket.org/sippey/aquaria/wiki/matlab_repo';
-        url = 'https://github.com/dakmord/RPS/releases/download/0.8';
-        %url = 'file:\\\C:\Users\q365198\Desktop\GithubRepo\trunk\matlab_repo'
-        %url = 'https://bitbucket.org/sippey/aquaria/wiki/matlab_repo';
-        %url = 'https://bytebucket.org/sippey/aquaria/wiki/matlab_repo/package_registry.xml?rev=707758b8e3d05e6cb0c385de76a58e59f8489de0'
-    case {'bmw', '2'}
-        url = 'file:\\\C:\Users\q365198\Documents\Rapid-Prototyping-System\toolchains\temp';
+function url = get_repo_url()
+% Basic Github URL
+tagsRepo = 'https://github.com/dakmord/RPS/tags';
+
+% Find all revisions/tags
+folderList = getRepositoryList(tagsRepo,'','');
+if length(folderList)>1
+    % look
+    version = {};
+    for p=1:1:length(folderList)
+        % Filter crap out of it
+        tmp = strrep(folderList{p},'v','');
+        tmp = strrep(tmp,'V','');
+        tmp = strrep(tmp, 'beta','');
+        tmp = strrep(tmp, 'alpha','');
+        tmp = strrep(tmp, 'version','');
+        tmp = strrep(tmp, 'Version','');
+        tmp = strrep(tmp, ' ','');
+        versions{end+1} = str2num(tmp);
+    end
+    % find latest release
+    biggestNumber = 0;
+    for z = 1:1:length(versions);
+        if versions{z}>biggestNumber
+            biggestNumber = versions{z};
+        end
+    end
+    % Find folder
+    for dirs=1:1:length(folderList)
+        if ~isempty(strfind(folderList{dirs}),num2str(biggestNumber))
+            releaseFolder = folderList{dirs};
+            break;
+        end
+    end
+else
+    % doenst matter just one entry
+    releaseFolder = folderList{1};
 end
 
+url = 'https://github.com/dakmord/RPS/releases/download/';
+url = fullfile(url, releaseFolder);
 end
