@@ -16,7 +16,7 @@ switch (cmd)
 end
 end
 
-% This function is modified from Mikhail's TM4C1294NPDT package
+% This function is modified from Mikhail's package
 function ret = i_TM4C1294NPDT_download(modelName, output_path)
 
 disp(['### Downloading ', modelName, ' to TM4C1294NPDT LaunchPad [' getpref('TM4C1294NPDT','COMPort') ']...']);
