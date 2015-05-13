@@ -1,5 +1,4 @@
 function ret = TM4C1294NPDT_build_init(varargin)
-
 % Generate core.a lib in current folder
 disp('### Creating Custom Library for TM4C1294NPDT LaunchPad...');
 realtime.internal.runTM4C1294NPDTCmd('generateCoreLibrary');
@@ -19,7 +18,7 @@ ret = true;
 end
 
 function set_mkt_toolchain(pkg_root_dir)
-%%
+% ...
 xmake_path = fileparts(which('xmakefilesetup'));
 if isempty(xmake_path) || ~exist(fullfile( xmake_path, 'registry', 'templates' , 'defgmake.mkt'), 'file')
     % use package defgmake
