@@ -52,6 +52,15 @@ function about_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to about (see VARARGIN)
 
+% Save rps home path
+handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
+% Custom GUI Icon
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+jframe=get(hObject,'javaframe');
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','BMW-neg_com_info_18.png'));
+jframe.setFigureIcon(jIcon);
+
 % Choose default command line output for about
 handles.output = hObject;
 

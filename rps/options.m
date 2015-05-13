@@ -22,7 +22,7 @@ function varargout = options(varargin)
 
 % Edit the above text to modify the response to help options
 
-% Last Modified by GUIDE v2.5 09-May-2015 13:47:43
+% Last Modified by GUIDE v2.5 13-May-2015 10:55:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -111,11 +111,18 @@ function options_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to options (see VARARGIN)
 
+% Save rps home path
+handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
+% Custom GUI Icon
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+jframe=get(hObject,'javaframe');
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','BMW-neg_com_settings_18.png'));
+jframe.setFigureIcon(jIcon);
+
 % Get old userconfig values ...
-cd(fullfile('fcn'));
 [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
     repoFolder, revision] = getUserconfigValues(fullfile('..','..','userconfig.xml'));
-cd(fullfile('..'));
 
 % create basic handles
 handles.updateInterval = updateInterval;
@@ -557,4 +564,3 @@ if strcmp(eventdata.Key,'f1')
     %open help
     showdemo options;
 end
-

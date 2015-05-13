@@ -1,4 +1,25 @@
 function varargout = rps_GraphicalUserInterface(varargin)
+%% Rapid-Prototyping-System User Interface
+% Basic features:
+%%
+% 
+% * Adding/Modifing Simulink Model (Default) Preferences (Include Folder for Custom C-Code S-Functions, ...)
+% * Create <rps_GraphicalUserInterface.html#4 Custom S-Functions using C-Code> (GUI supported LegacyCodeTool)
+% * Easy-to-use SVN-Interface (Log, Refresh, Update, Switch
+% branches/tags/repo's, Branching/Tagging, Add, ...)
+% * Install Simulink Support Packages (Mathworks & Thirdparty)
+% * 
+% 
+
+%% Custom S-Functions using C-Code
+% tbd...
+
+%% SVN-Interface
+% tbd...
+
+%% Install Simulink Support Packages
+% tbd...
+
 % RPS_GRAPHICALUSERINTERFACE MATLAB code for rps_GraphicalUserInterface.fig
 %      RPS_GRAPHICALUSERINTERFACE, by itself, creates a new RPS_GRAPHICALUSERINTERFACE or raises the existing
 %      singleton*.
@@ -22,7 +43,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 12-May-2015 22:02:12
+% Last Modified by GUIDE v2.5 13-May-2015 10:56:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,15 +73,21 @@ function rps_GraphicalUserInterface_OpeningFcn(hObject, eventdata, handles, vara
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to rps_GraphicalUserInterface (see VARARGIN)
 
-% Custom GUI Icon
-warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-jframe=get(hObject,'javaframe');
-jIcon=javax.swing.ImageIcon('C:\Users\q365198\Desktop\Rapid-Prototyping-System\rps\etc\bmw_icons_18\bmw_icon.png');
-jframe.setFigureIcon(jIcon);
-
+% Create Menu Icons
+set(hObject, 'Visible', 'on');
+pause(0.001);
+set(hObject, 'Visible', 'off');
+addMenuIcons(hObject, handles);
 
 % Save rps home path
 handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
+% Custom GUI Icon
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+jframe=get(hObject,'javaframe');
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','bmw_icon.png'));
+jframe.setFigureIcon(jIcon);
+
 
 % Splash Screen
 s = SplashScreen( 'Rapid-Prototyping-System', 'splashScreen.png', ...
@@ -130,15 +157,42 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
-% Create Menu Icons
-%addMenuIcons(gcf, handles)
-
 % Check if local repo is outdated
 checkForOutdated(hObject, handles);
 
 % UIWAIT makes rps_GraphicalUserInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
+
+function addMenuIcons(figure, handles)
+% File
+set(handles.file_menu, 'UserData', 'BMW-neg_med_document_18.png');
+set(handles.file_new, 'UserData', 'BMW-neg_act_logout_18.png');
+set(handles.new_legacyCode, 'UserData', 'c_logo.png');
+set(handles.file_preferences, 'UserData', 'BMW-neg_com_settings_18.png');
+set(handles.sim_preferences, 'UserData', 'BMW-neg_com_settings_18.png');
+set(handles.file_exit, 'UserData', 'BMW-neg_nav_close_18.png');
+
+%SVN
+set(handles.svn_menu, 'UserData', 'BMW-neg_act_replace_18.png');
+set(handles.svn_refresh, 'UserData', 'BMW-neg_int_update_18.png');
+set(handles.svn_update, 'UserData', 'BMW-neg_act_download_18.png');
+
+%SupportPackages
+set(handles.supportPkg_menu, 'UserData', 'BMW-neg_act_download_18.png');
+set(handles.supportPkg_install, 'UserData', 'BMW-neg_act_logout_18.png');
+set(handles.supportPkg_custom, 'UserData', 'BMW-neg_act_logout_18.png');
+set(handles.supportPkg_mathworks, 'UserData', 'Matlab_Logo.png');
+set(handles.supportPkg_arduino, 'UserData', 'arduino_logo.png');
+set(handles.supportPkg_tm4c1294npdt, 'UserData', 'ti_logo.png');
+set(handles.supportPkg_url, 'UserData', 'BMW-neg_nav_more_18.png');
+
+%Help
+set(handles.help_menu, 'UserData', 'BMW-neg_com_help_18.png');
+set(handles.help_about, 'UserData', 'BMW-neg_com_info_18.png');
+
+% Set the icons 
+Figure_Menu_Add_Icons(figure);
 
 
 function checkForOutdated(hObject, handles)
@@ -162,37 +216,30 @@ function varargout = rps_GraphicalUserInterface_OutputFcn(hObject, eventdata, ha
 varargout{1} = handles.output;
 
 
-function addMenuIcons(figure, handles)
-
-set(handles.file_new, 'UserData', 'BMW-neg_act_logout_18_o.png');
-% Set the icons 
-Figure_Menu_Add_Icons(figure);
-
-
 % --------------------------------------------------------------------
-function Untitled_1_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_1 (see GCBO)
+function file_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to file_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_3_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_3 (see GCBO)
+function svn_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to svn_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_4_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_4 (see GCBO)
+function supportPkg_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function Untitled_5_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_5 (see GCBO)
+function help_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -643,8 +690,8 @@ end
 
 
 % --------------------------------------------------------------------
-function Untitled_21_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_21 (see GCBO)
+function sim_preferences_Callback(hObject, eventdata, handles)
+% hObject    handle to sim_preferences (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -654,7 +701,29 @@ function preferences_model_Callback(hObject, eventdata, handles)
 % hObject    handle to preferences_model (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+openModels = find_system('SearchDepth', 0);
+modelList = {};
+for i=1:1:length(openModels)
+   if strcmp(get_param(openModels{i},'Shown'),'on') 
+       % Open Model
+       modelList{end+1} = openModels{i};
+   end
+end
+if ~isempty(modelList)
+    [Selection,ok] = listdlg('PromptString', 'Select a Model:', 'SelectionMode', 'single', 'ListString', modelList);
+    if ok==1 && ~isempty(Selection)
+        % Load ConfigSet
+        configStruct = load(fullfile(handles.homeDir,'rps','cfg','basicSimulinkConfigSet.mat'),'basicSimulinkConfig');
+        % Add current include paths
+        configStruct.basicSimulinkConfig=addIncludePathToConfigSet(configStruct.basicSimulinkConfig);
+        
+        % Publish Config to Model
+        attachConfigSet(modelList{Selection},configStruct.basicSimulinkConfig);
+        setActiveConfigSet(modelList{Selection},'RapidPrototypingSystem_Configuration');
+    end
+else
+   errordlg('No open models have been found!', 'No Models Found!');
+end
 
 % --------------------------------------------------------------------
 function new_model_Callback(hObject, eventdata, handles)
@@ -664,6 +733,17 @@ function new_model_Callback(hObject, eventdata, handles)
 model = new_system('default_model','Model');
 open_system(model);
 
+% Load ConfigSet
+configStruct = load(fullfile(handles.homeDir,'rps','cfg','basicSimulinkConfigSet.mat'),'basicSimulinkConfig');
+
+% Add current include paths
+configStruct.basicSimulinkConfig=addIncludePathToConfigSet(configStruct.basicSimulinkConfig);
+
+% Publish Config to Model
+attachConfigSet(model,configStruct.basicSimulinkConfig);
+setActiveConfigSet(model,'RapidPrototypingSystem_Configuration');
+
+
 % --------------------------------------------------------------------
 function new_library_Callback(hObject, eventdata, handles)
 % hObject    handle to new_library (see GCBO)
@@ -671,3 +751,17 @@ function new_library_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 model = new_system('default_model','Library');
 open_system(model);
+
+
+% --- Executes on key press with focus on figure1 and none of its controls.
+function figure1_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  structure with the following fields (see FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+if strcmp(eventdata.Key,'f1')
+    %open help
+    showdemo rps_GraphicalUserInterface;
+end

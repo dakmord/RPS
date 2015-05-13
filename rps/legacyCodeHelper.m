@@ -71,6 +71,12 @@ handles.name = '';
 handles.cpp = false;
 set(handles.edit_outputPath,'String', handles.outputPath);
 
+% Custom GUI Icon
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+jframe=get(hObject,'javaframe');
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','c_logo.png'));
+jframe.setFigureIcon(jIcon);
+
 
 % Choose default command line output for legacyCodeHelper
 handles.output = hObject;
@@ -100,110 +106,119 @@ function btn_ok_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Start loading screen..
+enableDisableFig(gcf,'off');
+try
+    animationHandle = showLoadingAnimation('Generating Block Output...', 'Collecting data...');
 
+    % Actualize Every Handle
+    handles.parameterizedSample = get(handles.cb_parameterizedSample, 'Value');
+    handles.showBlockPreview = get(handles.cb_blockPreview, 'Value');
+    handles.generateTlc = get(handles.cb_tlcFile, 'Value');
+    handles.outputPath = get(handles.edit_outputPath, 'String');
+    handles.outputFunction = get(handles.edit_outputFunction, 'String');
+    handles.name = get(handles.edit_sfuncName, 'String');
+    handles.startFunction = get(handles.edit_startFcn, 'String');
+    handles.terminateFunction = get(handles.edit_terminateFcn, 'String');
+    handles.cpp = get(handles.cb_cpp, 'Value');
 
-% Actualize Every Handle
-handles.parameterizedSample = get(handles.cb_parameterizedSample, 'Value');
-handles.showBlockPreview = get(handles.cb_blockPreview, 'Value');
-handles.generateTlc = get(handles.cb_tlcFile, 'Value');
-handles.outputPath = get(handles.edit_outputPath, 'String');
-handles.outputFunction = get(handles.edit_outputFunction, 'String');
-handles.name = get(handles.edit_sfuncName, 'String');
-handles.startFunction = get(handles.edit_startFcn, 'String');
-handles.terminateFunction = get(handles.edit_terminateFcn, 'String');
-handles.cpp = get(handles.cb_cpp, 'Value');
+    % Check for minimal configuration
+    if isempty(handles.name) || isempty(handles.outputPath) || ...
+            isempty(handles.outputFunction) || isempty(handles.selectedFiles)
+        errordlg('Please provide all * marked input parameter.','Missing Input Parameter');
+        return;
+    end
 
-% Check for minimal configuration
-if isempty(handles.name) || isempty(handles.outputPath) || ...
-        isempty(handles.outputFunction) || isempty(handles.selectedFiles)
-    errordlg('Please provide all * marked input parameter.','Missing Input Parameter');
-    return;
-end
+    % Initialize legacy code tool...
+    animationHandle.setProgressStatusLabel('Please wait, initializing legacy...');
+    spec = legacy_code('initialize');
+    spec.SFunctionName = handles.name;
 
-% Initialize legacy code tool...
-spec = legacy_code('initialize');
-spec.SFunctionName = handles.name;
+    % Define Header/Sources
+    sources = {};
+    srcPaths = {};
+    headers = {};
+    headerPaths = {};
 
-% Define Header/Sources
-sources = {};
-srcPaths = {};
-headers = {};
-headerPaths = {};
-
-for i=1:1:length(handles.selectedFiles)
-    for p=1:1:length(handles.selectedFiles{i}.files)
-        tmpFile = handles.selectedFiles{i}.files{p};
-        if ~isempty(strfind(tmpFile,'.c')) || ~isempty(strfind(tmpFile,'.C'))
-            % Source
-            sources{end+1} = fullfile(tmpFile);
-            srcPaths{end+1} = handles.selectedFiles{i}.path;
-        elseif ~isempty(strfind(tmpFile,'.h')) || ~isempty(strfind(tmpFile,'.H'))
-            % Header
-            headers{end+1} = fullfile(tmpFile);
-            headerPaths{end+1} = handles.selectedFiles{i}.path;
+    for i=1:1:length(handles.selectedFiles)
+        for p=1:1:length(handles.selectedFiles{i}.files)
+            tmpFile = handles.selectedFiles{i}.files{p};
+            if ~isempty(strfind(tmpFile,'.c')) || ~isempty(strfind(tmpFile,'.C'))
+                % Source
+                sources{end+1} = fullfile(tmpFile);
+                srcPaths{end+1} = handles.selectedFiles{i}.path;
+            elseif ~isempty(strfind(tmpFile,'.h')) || ~isempty(strfind(tmpFile,'.H'))
+                % Header
+                headers{end+1} = fullfile(tmpFile);
+                headerPaths{end+1} = handles.selectedFiles{i}.path;
+            end
         end
     end
-end
-spec.HeaderFiles = headers;
-spec.SourceFiles = sources;
-spec.IncPaths = headerPaths;
-spec.SrcPaths = srcPaths;
+    spec.HeaderFiles = headers;
+    spec.SourceFiles = sources;
+    spec.IncPaths = headerPaths;
+    spec.SrcPaths = srcPaths;
 
-% Define Functions
-spec.OutputFcnSpec = handles.outputFunction;
-spec.TerminateFcnSpec = handles.terminateFunction;
-spec.StartFcnSpec = handles.startFunction;
+    % Define Functions
+    spec.OutputFcnSpec = handles.outputFunction;
+    spec.TerminateFcnSpec = handles.terminateFunction;
+    spec.StartFcnSpec = handles.startFunction;
 
-% Define SampleTime
-if handles.parameterizedSample==true
-    spec.SampleTime = 'parameterized';
-else
-    spec.SampleTime = 'inherited';
-end
-
-% Define Language
-if handles.cpp == true
-    spec.Options.language = 'C++';
-else
-    spec.Options.language = 'C';
-end
-
-% Test Options
-%spec.Options.singleCPPMexFile = true;
-
-% Change to output Path
-currentPath = pwd;
-
-if isdir(handles.outputPath)
-    % everything fine...
-    cd(handles.outputPath);
-else
-    % Create Dir
-    mkdir(handles.outputPath);
-    cd(handles.outputPath);
-end
-
-try
-    % Compile
-    legacy_code('sfcn_cmex_generate', spec);
-    legacy_code('compile', spec);
-    legacy_code('rtwmakecfg_generate', spec);
-    % Show Block preview in model?
-    if handles.showBlockPreview==true
-        legacy_code('slblock_generate', spec);
+    % Define SampleTime
+    if handles.parameterizedSample==true
+        spec.SampleTime = 'parameterized';
+    else
+        spec.SampleTime = 'inherited';
     end
 
-    % Generate TLC-File?
-    if handles.generateTlc==true
-        legacy_code('sfcn_tlc_generate', spec);
+    % Define Language
+    if handles.cpp == true
+        spec.Options.language = 'C++';
+    else
+        spec.Options.language = 'C';
     end
 
-    % GO back to previous directory
-    cd(currentPath);
+    % Test Options
+    %spec.Options.singleCPPMexFile = true;
+
+    % Change to output Path
+    currentPath = pwd;
+
+    if isdir(handles.outputPath)
+        % everything fine...
+        cd(handles.outputPath);
+    else
+        % Create Dir
+        mkdir(handles.outputPath);
+        cd(handles.outputPath);
+    end
+
+    try
+        % Compile
+        animationHandle.setProgressStatusLabel('Please wait, compiling...');
+        legacy_code('sfcn_cmex_generate', spec);
+        legacy_code('compile', spec);
+        legacy_code('rtwmakecfg_generate', spec);
+        % Show Block preview in model?
+        if handles.showBlockPreview==true
+            legacy_code('slblock_generate', spec);
+        end
+
+        % Generate TLC-File?
+        if handles.generateTlc==true
+            legacy_code('sfcn_tlc_generate', spec);
+        end
+
+        % GO back to previous directory
+        cd(currentPath);
+    catch
+        cd(currentPath);
+        error('Error compiling s-function using legacyCodeTool...');
+    end
+    enableDisableFig(gcf,'on');
 catch
-    cd(currentPath);
-    error('Error compiling s-function using legacyCodeTool...');
+    enableDisableFig(gcf,'on');
 end
+hideLoadingAnimation(animationHandle);
 
 
 % --- Executes on button press in btn_cancel.
