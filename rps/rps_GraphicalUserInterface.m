@@ -43,7 +43,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 13-May-2015 10:56:47
+% Last Modified by GUIDE v2.5 17-May-2015 21:14:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -142,13 +142,14 @@ if handles.credentialsNeeded==1
         % Password Missing
         error('Missing SVN Login/Password!');
     end
-    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
+    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
 else
     % without
-    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
+    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
 end
 set(handles.log_table,'Data',log);
 handles.log = log;
+handles.logFiles = files;
 
 
 % Choose default command line output for rps_GraphicalUserInterface
@@ -177,6 +178,9 @@ set(handles.file_exit, 'UserData', 'BMW-neg_nav_close_18.png');
 set(handles.svn_menu, 'UserData', 'BMW-neg_act_replace_18.png');
 set(handles.svn_refresh, 'UserData', 'BMW-neg_int_update_18.png');
 set(handles.svn_update, 'UserData', 'BMW-neg_act_download_18.png');
+set(handles.svn_branch, 'UserData', 'BMW-neg_act_open_18.png');
+set(handles.svn_switch, 'UserData', 'BMW-neg_act_replace_18.png');
+set(handles.svn_delete, 'UserData', 'BMW-neg_nav_close_18.png');
 
 %SupportPackages
 set(handles.supportPkg_menu, 'UserData', 'BMW-neg_act_download_18.png');
@@ -448,14 +452,35 @@ function svn_branch_Callback(hObject, eventdata, handles)
 % hObject    handle to svn_branch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+enableDisableFig(gcf,'off');
+% Info: {1} = Repository URL, {2} = Local Revision, {3} = Local Folder, {4}
+% = passwordNeeded
+url = handles.url;
+assignin('base', 'str', url);
+uiwait(branchTagSvnDialog(url,handles.revision,handles.repoFolder, handles.credentialsNeeded));
+enableDisableFig(gcf,'on');
+figure(gcf);
 
 % --------------------------------------------------------------------
 function svn_switch_Callback(hObject, eventdata, handles)
 % hObject    handle to svn_switch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+enableDisableFig(gcf,'off');
+% Info: {1} = Repository URL, {2} = Local Revision, {3} = Local Folder, {4}
+% = passwordNeeded
+try
+    uiwait(switchSvnDialog(...
+        handles.url,...
+        handles.revision,...
+        handles.repoFolder,...
+        handles.credentialsNeeded));
+catch
+    % Error
+    error('Error while loading Switch SVN-Dialog.');
+end
+enableDisableFig(gcf,'on');
+figure(gcf);
 
 % --------------------------------------------------------------------
 function supportPkg_install_Callback(hObject, eventdata, handles)
@@ -621,13 +646,19 @@ function log_table_CellSelectionCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 data = get(handles.log_table,'Data');
+commit = handles.logFiles;
+selected = commit{eventdata.Indices(1)};
 
 authorString =      ['#Author:   ' data{eventdata.Indices(1),2} ];
 revisionString =    ['#Revision: ' data{eventdata.Indices(1),1} ];
 dateString =        ['#Date:     ' data{eventdata.Indices(1),3} ];
 outputText = sprintf('\n\n%s\n%s\n%s\n#Log:\n%s',revisionString, authorString, dateString,data{eventdata.Indices(1),4});
 disp(outputText);
-
+for i=1:1:length(selected.files)
+   % Output Files/Actions 
+   outputText = sprintf(' -> %s   %s', selected.actions{i},selected.files{i});
+   disp(outputText);
+end
 
 
 % --- Executes when entered data in editable cell(s) in log_table.
@@ -765,3 +796,10 @@ if strcmp(eventdata.Key,'f1')
     %open help
     showdemo rps_GraphicalUserInterface;
 end
+
+
+% --------------------------------------------------------------------
+function svn_delete_Callback(hObject, eventdata, handles)
+% hObject    handle to svn_delete (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

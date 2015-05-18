@@ -1,4 +1,4 @@
-function [folderList] = getRepositoryList(repoFolder,username,password)
+function [folderList, info] = getRepositoryList(repoFolder,username,password)
 %Define important Paths which will be needed ...
 homePath = getpref('RapidPrototypingSystem','HomeDir');
 svnExe = fullfile(homePath,'rps','etc','svn','svn.exe');
@@ -15,12 +15,24 @@ else
 end
 
 [status, cmdout] = dos(cmd);
+
+% Check for errors during svn command
+[info, message] = handleErrorsSVN(status,cmdout);
+if ~isempty(info)
+   % Error
+   uiwait(errordlg(['Error: ' info ', ' message],'SVN Error!'));
+   info = -1;
+   folderList={};
+   return;
+end
+
+% Save output to file...
 fid = fopen(fullfile(pwd, 'cmdout.xml'), 'wt');
 fprintf(fid,'%s',cmdout);
 fclose(fid);
 
 if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
-
+    % Read XML-File
     xml = xml2struct(fullfile(pwd,'cmdout.xml'));
     delete('cmdout.xml');
     % store folderList
@@ -43,5 +55,5 @@ else
     folderList={};
     disp('### Error: Something went wrong getting "log" informations. Could not find automatic generated cmdout.xml...');
 end
-
+info = 1;
 end

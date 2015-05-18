@@ -1,11 +1,11 @@
-function [log] = getRepositoryLog(repository,folder,maxLogEntries,username,password)
+function [log, files] = getRepositoryLog(repository,folder,maxLogEntries,username,password)
 %Define important Paths which will be needed ...
 homePath = getpref('RapidPrototypingSystem','HomeDir');
 svnExe = fullfile(homePath,'rps','etc','svn','svn.exe');
 
 %Check size of Files which will be transfered..
 command='log';
-custom=['-l ' num2str(maxLogEntries) ' --xml'];
+custom=['-l ' num2str(maxLogEntries) ' -v --xml'];
 repUrl = fullfile(repository, folder);
 repUrl = strrep(repUrl,'\','/');
 
@@ -16,6 +16,17 @@ else
 end
 
 [status, cmdout] = dos(cmd);
+% Check for errors during svn command
+[info, message] = handleErrorsSVN(status,cmdout);
+if ~isempty(info)
+   % Error
+   uiwait(errordlg(['Error: ' info ', ' message],'SVN Error!'));
+   log={};
+   log(1,:) = {'','',info,message};
+   files={};
+   return;
+end
+
 fid = fopen(fullfile(pwd, 'cmdout.xml'), 'wt');
 fprintf(fid,'%s',cmdout);
 fclose(fid);
@@ -27,6 +38,9 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
 
     % Create Log-Array
     log = {};
+    files = {};
+    commit.files={};
+    commit.actions = {};
     for i=1:1:length(xmlOutput.log.logentry)
         author = xmlOutput.log.logentry{i}.author.Text;
         msg = xmlOutput.log.logentry{i}.msg.Text;
@@ -39,6 +53,20 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
         time = time{1};
         newDate = [date ' ' time];
         
+        % Get changed files/dirs
+        for p = 1:1:length(xmlOutput.log.logentry{i}.paths.path)
+            if length(xmlOutput.log.logentry{i}.paths.path)==1
+                % just one
+                commit.files{end+1} = xmlOutput.log.logentry{i}.paths.path.Text;
+                commit.actions{end+1} = xmlOutput.log.logentry{i}.paths.path.Attributes.action;
+                files{end+1} = commit;
+            else
+                commit.files{end+1} = xmlOutput.log.logentry{i}.paths.path{p}.Text;
+                commit.actions{end+1} = xmlOutput.log.logentry{i}.paths.path{p}.Attributes.action;
+                files{end+1} = commit;
+            end
+        end
+            
         % look for empty msg
         if isempty(msg)
             msg = '';
