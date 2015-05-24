@@ -117,7 +117,7 @@ handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 % Custom GUI Icon
 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
-jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','BMW-neg_com_settings_18.png'));
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','BMW-neg_com_settings_18.png'));
 jframe.setFigureIcon(jIcon);
 
 % Get old userconfig values ...
@@ -243,6 +243,7 @@ try
     handles.autoUpdate = get(handles.checkUpdates_cb,'Value');
     handles.customUrl = get(handles.customUrl_cb,'Value');
     handles.credentialsNeeded = get(handles.credentials_cb,'Value');
+    handles.simulinkPereferences = false;
 
 
     % Check if Repo URL is valid
@@ -353,46 +354,9 @@ try
     end
 
     d.setProgressStatusLabel('Creating userconfig...');
-    docNode = com.mathworks.xml.XMLUtils.createDocument('userconfig');
-    docRootNode = docNode.getDocumentElement;
-    user_update = docNode.createElement('update'); 
-    updateInterval = docNode.createElement('updateInterval');
-    autoUpdate = docNode.createElement('autoUpdate');
-    repo = docNode.createElement('repo');
-    repoUrl = docNode.createElement('url');
-    repoFolder = docNode.createElement('folder');
-    repoRevision = docNode.createElement('revision'); 
-    repoCustomUrl = docNode.createElement('customUrl'); 
-    repoCredentialsNeeded = docNode.createElement('credentialsNeeded'); 
-
-    % Create update entries...
-    if str2num(get(handles.updateInterval_edit, 'String'))>0 && isnumeric(str2num(get(handles.updateInterval_edit, 'String')))
-        updateInterval.appendChild(docNode.createTextNode((get(handles.updateInterval_edit, 'String'))));
-    else
-        updateInterval.appendChild(docNode.createTextNode('10'));
-    end
-    autoUpdate.appendChild(docNode.createTextNode(num2str(handles.autoUpdate)));
-
-    % Create repo entries...
-    repoUrl.appendChild(docNode.createTextNode(handles.url));
-    repoCustomUrl.appendChild(docNode.createTextNode(num2str(handles.customUrl)));
-    repoCredentialsNeeded.appendChild(docNode.createTextNode(num2str(handles.credentialsNeeded)));
-    repoRevision.appendChild(docNode.createTextNode(num2str(handles.revision)));
-    repoFolder.appendChild(docNode.createTextNode(handles.repoFolder));
-
-    user_update.appendChild(updateInterval);
-    user_update.appendChild(autoUpdate);
-    docRootNode.appendChild(user_update);
-    repo.appendChild(repoUrl);
-    repo.appendChild(repoFolder);
-    repo.appendChild(repoRevision);
-    repo.appendChild(repoCustomUrl);
-    repo.appendChild(repoCredentialsNeeded);
-    docRootNode.appendChild(repo);
-
-    % Generate userconfig.xml
-    xmlFileName = fullfile('..', 'userconfig.xml');
-    xmlwrite(xmlFileName,docNode);
+    
+    % Generate XML
+    createUserconfigXML(hObject, handles)
 
     hideLoadingAnimation(d);
     
@@ -403,8 +367,9 @@ try
     if switchRepo==true
         switchRepository(handles.url,username,password);
     end
-catch
+catch err
    hideLoadingAnimation(d); 
+   rethrow(err);
 end
 
 

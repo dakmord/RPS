@@ -39,8 +39,6 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
     % Create Log-Array
     log = {};
     files = {};
-    commit.files={};
-    commit.actions = {};
     for i=1:1:length(xmlOutput.log.logentry)
         author = xmlOutput.log.logentry{i}.author.Text;
         msg = xmlOutput.log.logentry{i}.msg.Text;
@@ -52,19 +50,23 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
         time = strsplit(dSplitted{2},'.');
         time = time{1};
         newDate = [date ' ' time];
-        
+        commit.files={};
+        commit.actions = {};
         % Get changed files/dirs
         for p = 1:1:length(xmlOutput.log.logentry{i}.paths.path)
             if length(xmlOutput.log.logentry{i}.paths.path)==1
                 % just one
                 commit.files{end+1} = xmlOutput.log.logentry{i}.paths.path.Text;
                 commit.actions{end+1} = xmlOutput.log.logentry{i}.paths.path.Attributes.action;
-                files{end+1} = commit;
             else
                 commit.files{end+1} = xmlOutput.log.logentry{i}.paths.path{p}.Text;
                 commit.actions{end+1} = xmlOutput.log.logentry{i}.paths.path{p}.Attributes.action;
-                files{end+1} = commit;
             end
+        end
+        
+        % Add Files from current commit..
+        if ~isempty(commit)
+            files{end+1} = commit;
         end
             
         % look for empty msg

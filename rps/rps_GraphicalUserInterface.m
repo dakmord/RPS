@@ -43,7 +43,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 17-May-2015 21:14:01
+% Last Modified by GUIDE v2.5 22-May-2015 11:04:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -85,7 +85,7 @@ handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 % Custom GUI Icon
 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
-jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','bmw_icon.png'));
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','bmw_icon.png'));
 jframe.setFigureIcon(jIcon);
 
 
@@ -98,39 +98,7 @@ s.addText( 40, 50, 'Rapid-Prototyping-System', 'FontSize', 22, 'Color', 'white' 
 s.addText( 40, 120, 'v0.8', 'FontSize', 22, 'Color', 'white' );
 s.addText( 200, 270, 'Loading...', 'FontSize', 30, 'Color', 'white','FontWeight','bold' );
 
-% Check if it userconfig.xml is missing
-if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
-    % existing, read userconfig and save in handles
-    [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
-    repoFolder, revision] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
-
-    % create basic handles
-    handles.updateInterval = updateInterval;
-    handles.autoUpdate = autoUpdate;
-    handles.customUrl = customUrl;
-    handles.credentialsNeeded = credentialsNeeded;
-    handles.url = url;
-    handles.repoFolder = repoFolder;
-    handles.revision = revision;
-    handles.maxLogEntries = 20;
-else
-    % not existing, end and open preferences!
-    disp('### Missing userconfig.xml in your folder. Opening preferences...');
-    uiwait(options);
-    pause(0.5);
-    if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
-        % existing
-    else
-        % still missing
-        error('Missing userconfig.xml in your Rapid-Prototyping-System directory! Re-run gui and fill in preferences window!');
-    end
-    
-end
-
-% Basic Initialization...
-set(handles.repo_edit, 'String', handles.repoFolder);
-set(handles.revision_edit, 'String', handles.revision);
-set(handles.repository_edit, 'String', handles.url);
+[hObject, handles] = loadUserDataToHandles(hObject,handles);
 
 % Fill log with actual stuff
 if handles.credentialsNeeded==1
@@ -147,6 +115,7 @@ else
     % without
     [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
 end
+
 set(handles.log_table,'Data',log);
 handles.log = log;
 handles.logFiles = files;
@@ -169,10 +138,16 @@ function addMenuIcons(figure, handles)
 % File
 set(handles.file_menu, 'UserData', 'BMW-neg_med_document_18.png');
 set(handles.file_new, 'UserData', 'BMW-neg_act_logout_18.png');
+set(handles.new_library, 'UserData', '3d_modelling.png');
+set(handles.new_model, 'UserData', 'book.png');
 set(handles.new_legacyCode, 'UserData', 'c_logo.png');
 set(handles.file_preferences, 'UserData', 'BMW-neg_com_settings_18.png');
 set(handles.sim_preferences, 'UserData', 'BMW-neg_com_settings_18.png');
 set(handles.file_exit, 'UserData', 'BMW-neg_nav_close_18.png');
+set(handles.file_open, 'UserData', 'BMW-neg_nav_imagegallery_18.png');
+set(handles.file_openRpsLib, 'UserData', 'book.png');
+set(handles.file_openModel, 'UserData', '3d_modelling.png');
+set(handles.file_openLibs, 'UserData', 'book.png');
 
 %SVN
 set(handles.svn_menu, 'UserData', 'BMW-neg_act_replace_18.png');
@@ -275,6 +250,13 @@ d.setProgressStatusLabel('Please wait, updating gui...');
 handles.revision = revision;
 handles.repoFolder = folder;
 
+% Get Simulink pref
+if strcmp(get(handles.preferences_default,'Checked'), 'on')
+	handles.simulinkPereferences = true;
+else
+    handles.simulinkPereferences = false;
+end
+
 % Update handles
 guidata(hObject, handles);
 
@@ -354,35 +336,27 @@ function file_preferences_Callback(hObject, eventdata, handles)
 % hObject    handle to file_preferences (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 %uiwait(options);
-enableDisableFig(gcf,'off');
-uiwait(options);
-loadUserDataToHandles(hObject, handles);
+try
+    enableDisableFig(gcf,'off');
+    uiwait(options);
+    [hObject, handles] = loadUserDataToHandles(hObject, handles);
+
+    % Update handles structure
+    guidata(hObject, handles);
+catch err
+    enableDisableFig(gcf,'on');
+    figure(gcf);
+    rethrow(err);
+end
 enableDisableFig(gcf,'on');
 figure(gcf);
 
-function loadUserDataToHandles(hObject,handles)
+function [hObject, handles] = loadUserDataToHandles(hObject,handles)
 % Check if it userconfig.xml is missing
-if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
-    % existing, read userconfig and save in handles
-    [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
-    repoFolder, revision] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
-
-    % create basic handles
-    handles.updateInterval = updateInterval;
-    handles.autoUpdate = autoUpdate;
-    handles.customUrl = customUrl;
-    handles.credentialsNeeded = credentialsNeeded;
-    handles.url = url;
-    handles.repoFolder = repoFolder;
-    handles.revision = revision;
-    handles.maxLogEntries = 20;
-    % Actualize components
-    set(handles.revision_edit,'String',num2str(handles.revision));
-    set(handles.repo_edit,'String',handles.repoFolder);
-    set(handles.repository_edit,'String',handles.url);
-else
-    % not existing, end and open preferences!
+if ~isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
+    % not existing, open preferences!
     disp('### Missing userconfig.xml in your folder. Opening preferences...');
     uiwait(options);
     pause(0.5);
@@ -394,8 +368,31 @@ else
     end
     
 end
-% Update handles structure
-guidata(hObject, handles);
+
+% existing, read userconfig and save in handles
+[status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
+repoFolder, revision, simPreferences] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
+
+% create basic handles
+handles.updateInterval = updateInterval;
+handles.autoUpdate = autoUpdate;
+handles.customUrl = customUrl;
+handles.credentialsNeeded = credentialsNeeded;
+handles.url = url;
+handles.repoFolder = repoFolder;
+handles.revision = revision;
+handles.maxLogEntries = 20;
+handles.simulinkPereferences = simPreferences;
+
+% Actualize components
+set(handles.revision_edit,'String',num2str(handles.revision));
+set(handles.repo_edit,'String',handles.repoFolder);
+set(handles.repository_edit,'String',handles.url);
+if handles.simulinkPereferences
+    set(handles.preferences_default,'Checked','on');
+else
+    set(handles.preferences_default,'Checked','off');
+end
 
 
 % --------------------------------------------------------------------
@@ -422,13 +419,62 @@ function svn_refresh_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 checkUpdates_btn_Callback(hObject, eventdata, handles);
 
+
 % --------------------------------------------------------------------
 function preferences_default_Callback(hObject, eventdata, handles)
 % hObject    handle to preferences_default (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Start Loading Animation
+d = showLoadingAnimation('Save Simulink Preferences...', 'Please wait...');
 
+% Check if enable/disable
+if strcmp(get(handles.preferences_default, 'Checked'),'off')
+    % Set Checked
+    set(handles.preferences_default, 'Checked', 'on');
+    
+    % Load Userconfig and add it to XML
+    [ret] = savePreferenceToXML('simDefault', true);
+    
+    % Check for present cfg file and copy to _*
+    if isequal(exist(fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'),'file'),2)
+        % copy and rename
+        movefile(fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'),fullfile(prefdir(),'_Simulink_ConfigSet_Prefs.mat'),'f');
+    end
+
+    % Get Basic ConfigSet and Add Paths
+    configStruct = load(fullfile(handles.homeDir,'rps','cfg','basicSimulinkConfigSet.mat'),'basicSimulinkConfig');
+    % Add current include paths
+    ConfigSetSettings.Defaults = addIncludePathToConfigSet(configStruct.basicSimulinkConfig);
+    save(fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'),'ConfigSetSettings');
+    
+else
+    % uncheck
+    set(handles.preferences_default, 'Checked', 'off');
+    
+    % Load Userconfig and add it to XML
+    [ret] = savePreferenceToXML('simDefault', false);
+    
+    % Disable and revert
+    if isequal(exist(fullfile(prefdir(),'_Simulink_ConfigSet_Prefs.mat'),'file'),2)
+        % Basic File existing
+        delete(fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'));
+        movefile(fullfile(prefdir(),'_Simulink_ConfigSet_Prefs.mat'),fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'),'f');
+    else
+        % Nothing there.. just delete
+        delete(fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'));
+    end
+end
+
+% Apply Default Simulink Configuration set
+cs = getActiveConfigSet(0);
+cs.savePreferences('Load');
+
+% Remove Loading animation
+hideLoadingAnimation(d);
+figure(gcf);
+    
 % --------------------------------------------------------------------
 function file_rttModel_Callback(hObject, eventdata, handles)
 % hObject    handle to file_rttModel (see GCBO)
@@ -477,6 +523,8 @@ try
         handles.credentialsNeeded));
 catch
     % Error
+    enableDisableFig(gcf,'on');
+    figure(gcf);
     error('Error while loading Switch SVN-Dialog.');
 end
 enableDisableFig(gcf,'on');
@@ -547,13 +595,15 @@ if handles.credentialsNeeded==1
         % Password Missing
         error('Missing SVN Login/Password!');
     end
-    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
+    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
 else
     % without
-    [log] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
+    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
 end
+
 set(handles.log_table,'Data',log);
 handles.log = log;
+handles.logFiles = files;
 
 % Publish handles
 guidata(hObject, handles);
@@ -732,28 +782,73 @@ function preferences_model_Callback(hObject, eventdata, handles)
 % hObject    handle to preferences_model (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-openModels = find_system('SearchDepth', 0);
-modelList = {};
-for i=1:1:length(openModels)
-   if strcmp(get_param(openModels{i},'Shown'),'on') 
-       % Open Model
-       modelList{end+1} = openModels{i};
-   end
-end
-if ~isempty(modelList)
-    [Selection,ok] = listdlg('PromptString', 'Select a Model:', 'SelectionMode', 'single', 'ListString', modelList);
-    if ok==1 && ~isempty(Selection)
-        % Load ConfigSet
-        configStruct = load(fullfile(handles.homeDir,'rps','cfg','basicSimulinkConfigSet.mat'),'basicSimulinkConfig');
-        % Add current include paths
-        configStruct.basicSimulinkConfig=addIncludePathToConfigSet(configStruct.basicSimulinkConfig);
-        
-        % Publish Config to Model
-        attachConfigSet(modelList{Selection},configStruct.basicSimulinkConfig);
-        setActiveConfigSet(modelList{Selection},'RapidPrototypingSystem_Configuration');
+
+% Loading Animation
+d = showLoadingAnimation('Searching for Open Models...', 'Please wait...');
+
+try
+
+    openModels = find_system('SearchDepth', 0);
+    modelList = {};
+    for i=1:1:length(openModels)
+       if strcmp(get_param(openModels{i},'Shown'),'on') 
+           % Open Model
+           modelList{end+1} = openModels{i};
+       end
     end
-else
-   errordlg('No open models have been found!', 'No Models Found!');
+    
+    % Disable Loading Animation
+    hideLoadingAnimation(d); 
+    
+    if ~isempty(modelList)
+        [Selection,ok] = listdlg('PromptString', 'Select a Model:', 'SelectionMode', 'single', 'ListString', modelList);
+        if ok==1 && ~isempty(Selection)
+            % Load ConfigSet
+            configStruct = load(fullfile(handles.homeDir,'rps','cfg','basicSimulinkConfigSet.mat'),'basicSimulinkConfig');
+            % Add current include paths
+            configStruct.basicSimulinkConfig=addIncludePathToConfigSet(configStruct.basicSimulinkConfig);
+            
+            % Look if RapidProt.. already present
+            sets = getConfigSets(modelList{Selection});
+            for cfg = 1:1:length(sets)
+                % Check for RapidProt..
+                if strcmp(sets{cfg},'RapidPrototypingSystem_Configuration')
+                    % Found one, set to another config set and delete
+                    if length(sets)>1
+                        % another cfg present
+                        for oldcfg = 1:1:length(cfg)
+                            if ~isequal(cfg,oldcfg)
+                               % Save name of other cfg
+                               oldCfgName = sets{oldcfg};
+                            end
+                        end
+                        % Set old cfg
+                        setActiveConfigSet(modelList{Selection},oldCfgName);
+                        % Detach RapidProt... CFG
+                        detachConfigSet(modelList{Selection},'RapidPrototypingSystem_Configuration');
+                    else
+                        % Cannot do anything
+                        errordlg('Cannot apply RapidPrototypingSystem_Configuration because it is the only one availabe!', 'Cannot Apply Config Set!');
+                        error('Cannot apply RapidPrototypingSystem_Configuration because it is the only one availabe! Please create a basic Configuration first or delete the present manually.');
+                    end
+                end
+            end
+            
+            % Publish Config to Model
+            attachConfigSet(modelList{Selection},configStruct.basicSimulinkConfig);
+            setActiveConfigSet(modelList{Selection},'RapidPrototypingSystem_Configuration');
+        end
+    else
+       errordlg('No open models have been found!', 'No Models Found!');
+    end
+    
+    figure(gcf);
+catch err
+    % save state...
+    hideLoadingAnimation(d); 
+    figure(gcf);
+    % Show error..
+    rethrow(err);
 end
 
 % --------------------------------------------------------------------
@@ -803,3 +898,63 @@ function svn_delete_Callback(hObject, eventdata, handles)
 % hObject    handle to svn_delete (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function file_open_Callback(hObject, eventdata, handles)
+% hObject    handle to file_open (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function file_openRpsLib_Callback(hObject, eventdata, handles)
+% hObject    handle to file_openRpsLib (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Search for RPS-Libraries
+fPath = fullfile(handles.homeDir, 'blocks');
+fNames = dir( fullfile(fPath,'*.slx') );
+fNames = strcat({fNames.name});
+
+% Generate List of possible libs
+modelList = {};
+for i=1:length(fNames)
+    modelList{end+1} =  fullfile(fNames{i});
+end
+
+if ~isempty(modelList)
+    [Selection,ok] = listdlg('PromptString', 'Select a Library:', 'SelectionMode', 'single', 'ListString', modelList);
+    if ok==1 && ~isempty(Selection)
+        % Open selected Model/Lib
+        open_system(fullfile(fPath,modelList{Selection}));
+    end
+else
+   errordlg('No open models have been found!', 'No Models Found!');
+end
+
+% --------------------------------------------------------------------
+function file_openModel_Callback(hObject, eventdata, handles)
+% hObject    handle to file_openModel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[filename, path] = uigetfile({'*.slx;*.mdl','Models (*.slx, *.mdl)'},...
+    'Please Pick a Simulink Model File', 'MultiSelect', 'off');
+if ~isequal(filename,0)
+   % Selected and open
+   open_system(fullfile(path,filename));
+end
+
+
+% --------------------------------------------------------------------
+function file_openLibs_Callback(hObject, eventdata, handles)
+% hObject    handle to file_openLibs (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[filename, path] = uigetfile({'*.slx;*.mdl','Models (*.slx, *.mdl)'},...
+    'Please Pick a Simulink Library File', 'MultiSelect', 'off');
+if ~isequal(filename,0)
+   % Selected and open
+   open_system(fullfile(path,filename));
+end

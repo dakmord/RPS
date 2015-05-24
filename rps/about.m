@@ -58,7 +58,7 @@ handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 % Custom GUI Icon
 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
-jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','BMW-neg_com_info_18.png'));
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','BMW-neg_com_info_18.png'));
 jframe.setFigureIcon(jIcon);
 
 % Choose default command line output for about
@@ -73,7 +73,7 @@ guidata(hObject, handles);
 % Insert BMW Logo
 
 axes(handles.axes1)
-[I] = imread(fullfile('etc','bmw_icons_18','BMW-Logo-33.jpg'));
+[I] = imread(fullfile('etc','icons_18','BMW-Logo-33.jpg'));
 image(I);
 axis off
 axis image

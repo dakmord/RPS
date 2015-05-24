@@ -74,7 +74,7 @@ set(handles.edit_outputPath,'String', handles.outputPath);
 % Custom GUI Icon
 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
-jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','bmw_icons_18','c_logo.png'));
+jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','c_logo.png'));
 jframe.setFigureIcon(jIcon);
 
 
