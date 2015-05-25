@@ -32,6 +32,31 @@ try
         % Help Paths
         addpath(fullfile(path,'help'));
         
+        % Check if Shortcuts exist
+        categories = GetShortcutCategories();
+        shortcutExists = false;
+        for i=1:1:length(categories)
+           if strcmp(categories{i},'Rapid-Prototyping-System')
+              shortcutExists = true; 
+           end
+        end
+        
+        if shortcutExists == false
+            % Create ShortcutCategory
+            rps = 'Rapid-Prototyping-System';
+            AddShortcutCategories({rps});
+
+            % Add GUI Shortcut
+            rpsIconPath = fullfile(path, 'rps', 'etc', 'icons_18', 'bmw_icon.png');
+            AddShortcut('GraphicalUserInterface','rps_GraphicalUserInterface()',...
+                rpsIconPath, rps);
+
+            % Add Options Shortcut
+            optionsIconPath = fullfile(path, 'rps', 'etc', 'icons_18', 'BMW-neg_com_settings_18.png');
+            AddShortcut('Preferences','options()',...
+                optionsIconPath, rps);
+        end
+		
         if isequal(exist(fullfile(path, 'temp'),'dir'),7)
             % Delete temp dir because no longer needed
 			rmpath(fullfile(path, 'temp'));
