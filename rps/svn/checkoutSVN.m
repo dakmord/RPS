@@ -1,7 +1,7 @@
 function [] = checkoutSVN(repository, destination, depth, username, password)
 %Define important Paths which will be needed ...
-homePath = getpref('RapidPrototypingSystem', 'HomeDir');
-svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
+svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
+svnExe = fullfile(svnBin,'svn.exe');
 
 %Check size of Files which will be transfered..
 command='checkout';

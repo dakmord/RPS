@@ -1,7 +1,7 @@
 function [fileSize] = fileCountSVN(url, username, password)
 %Define important Paths which will be needed ...
-homePath = getpref('RapidPrototypingSystem', 'HomeDir');
-svnBench = fullfile(homePath, 'rps', 'etc','svn','svn-bench.exe');
+svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
+svnBench = fullfile(svnBin,'svn-bench.exe');
 
 %Check size of Files which will be transfered..
 command='null-list';

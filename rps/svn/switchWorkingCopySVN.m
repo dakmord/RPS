@@ -1,7 +1,7 @@
 function [info] = switchWorkingCopySVN(revision, newUrl, localPath, username, password)
 % Home Path
-homePath = getpref('RapidPrototypingSystem', 'HomeDir');
-svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
+svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
+svnExe = fullfile(svnBin,'svn.exe');
 
 % Initialize Commandline Call
 command='switch';

@@ -1,7 +1,7 @@
 function [info] = createBranchTag(revision, message, sourceUrl, destinationUrl, username, password)
 % Home Path
-homePath = getpref('RapidPrototypingSystem', 'HomeDir');
-svnExe = fullfile(homePath, 'rps', 'etc','svn','svn.exe');
+svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
+svnExe = fullfile(svnBin,'svn.exe');
 
 % Initialize Commandline call
 command='copy';
