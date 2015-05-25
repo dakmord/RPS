@@ -15,24 +15,13 @@ try
     %% Initialize RPS
     % Setup basic Paths and Preferences needed.
     disp('### Initializing Rapid-Prototyping-System...');
-    scriptPath = mfilename('fullpath');
-    [path, name, ext] = fileparts(scriptPath);
-    guiPath = [path '\gui'];
-    % Create RPS Pref with home dir
+    % Get HomeDir
     pref_group = 'RapidPrototypingSystem';
-	setpref(pref_group,'HomeDir',path);
+	path = getpref(pref_group,'HomeDir');
 	
     
     %% Check if RPS initialize state
-    if ~ispref('RapidPrototypingSystem', 'isInitialized');
-		% Set SVN Path to prefs...
-		setpref(pref_group,'SvnBinaries', fullfile(path, 'temp', 'svn', 'bin'));
-	
-        % First RPS startup... initialize
-        % -> Checkout RPS Data from Repository
-        addpath(fullfile(path, 'temp'));
-        rps_initialization;
-    else
+    if ispref('RapidPrototypingSystem', 'isInitialized');
 		% Set SVN Path to prefs...
 		setpref(pref_group,'SvnBinaries', fullfile(path, 'rps', 'etc', 'svn', 'bin'));
 	
@@ -43,13 +32,14 @@ try
         % Help Paths
         addpath(fullfile(path,'help'));
         
-        % Remove old temp path
-        rmpath(fullfile(path, 'temp'));
         if isequal(exist(fullfile(path, 'temp'),'dir'),7)
             % Delete temp dir because no longer needed
+			rmpath(fullfile(path, 'temp'));
             rmdir(fullfile(path, 'temp'),'s');
         end
-    end
+    else
+		error('Rapid-Prototyping-System seems to be not initialized. -> isInitialized is missing in your MATLAB preferences! If you do not know what happened, please reinstall Rapid-Prototyping-System.');
+	end
     
     %% Build Searchdatabase for help files
     
@@ -60,8 +50,14 @@ try
     % Change Dir to RPS...
     cd(path);
 
+	% Save all Searchpaths
+	savepath();
+	
+	% Clear WS
+	clear;
+	
     disp('### DONE without Errors!');
 catch
     %% Error
-    disp('### ERROR: startup_rps.m failed!')
+    disp('### ERROR: startup_rps.m failed!');
 end
