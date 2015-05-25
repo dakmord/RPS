@@ -695,21 +695,24 @@ function log_table_CellSelectionCallback(hObject, eventdata, handles)
 %	Indices: row and column indices of the cell(s) currently selecteds
 % handles    structure with handles and user data (see GUIDATA)
 
-data = get(handles.log_table,'Data');
-commit = handles.logFiles;
-selected = commit{eventdata.Indices(1)};
+% Check if valid
+if length(eventdata.Indices)>0
+    % handle Data
+    data = get(handles.log_table,'Data');
+    commit = handles.logFiles;
+    selected = commit{eventdata.Indices(1)};
 
-authorString =      ['#Author:   ' data{eventdata.Indices(1),2} ];
-revisionString =    ['#Revision: ' data{eventdata.Indices(1),1} ];
-dateString =        ['#Date:     ' data{eventdata.Indices(1),3} ];
-outputText = sprintf('\n\n%s\n%s\n%s\n#Log:\n%s',revisionString, authorString, dateString,data{eventdata.Indices(1),4});
-disp(outputText);
-for i=1:1:length(selected.files)
-   % Output Files/Actions 
-   outputText = sprintf(' -> %s   %s', selected.actions{i},selected.files{i});
-   disp(outputText);
+    authorString =      ['#Author:   ' data{eventdata.Indices(1),2} ];
+    revisionString =    ['#Revision: ' data{eventdata.Indices(1),1} ];
+    dateString =        ['#Date:     ' data{eventdata.Indices(1),3} ];
+    outputText = sprintf('\n\n%s\n%s\n%s\n#Log:\n%s',revisionString, authorString, dateString,data{eventdata.Indices(1),4});
+    disp(outputText);
+    for i=1:1:length(selected.files)
+       % Output Files/Actions 
+       outputText = sprintf(' -> %s   %s', selected.actions{i},selected.files{i});
+       disp(outputText);
+    end
 end
-
 
 % --- Executes when entered data in editable cell(s) in log_table.
 function log_table_CellEditCallback(hObject, eventdata, handles)
