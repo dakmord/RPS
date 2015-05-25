@@ -159,9 +159,7 @@ else
 end
 
 % Get current url's from xml-file..
-cd('etc');
-xml = xml2struct(fullfile('..','cfg','repos.xml'));
-cd('..')
+xml = xml2struct(fullfile(handles.homeDir,'rps','cfg','repos.xml'));
 [x, y] = size(xml.urls.url);
 popup_list = {};
 
