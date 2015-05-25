@@ -4,13 +4,19 @@ function blkStruct = slblocks
 %   Copyright 2012 The MathWorks, Inc.
 
 blkStruct.Name = sprintf('Rapid-Prototyping-System');
-blkStruct.OpenFcn = 'arduinorootlib';
+blkStruct.OpenFcn = 'rpsrootlib';%'arduinorootlib';
 blkStruct.MaskInitialization = '';
 blkStruct.MaskDisplay = 'disp(''RPS'')';
 
 Browser(1).Library = 'rpsrootlib';
 Browser(1).Name    = sprintf('Rapid-Prototyping-System');
 Browser(1).IsFlat  = 0; % Is this library "flat" (i.e. no subsystems)?
+
+% Test, second lib
+Browser(2).Library = 'untitled';
+Browser(2).Name    = sprintf('Test Lib');
+Browser(2).IsFlat  = 1; % Is this library "flat" (i.e. no subsystems)?
+
 
 blkStruct.Browser = Browser;  
 
