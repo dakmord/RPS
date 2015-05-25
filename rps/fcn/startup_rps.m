@@ -21,14 +21,21 @@ try
     % Create RPS Pref with home dir
     pref_group = 'RapidPrototypingSystem';
 	setpref(pref_group,'HomeDir',path);
+	
     
     %% Check if RPS initialize state
     if ~ispref('RapidPrototypingSystem', 'isInitialized');
+		% Set SVN Path to prefs...
+		setpref(pref_group,'SvnBinaries', fullfile(path, 'temp', 'svn', 'bin'));
+	
         % First RPS startup... initialize
         % -> Checkout RPS Data from Repository
         addpath(fullfile(path, 'temp'));
         rps_initialization;
     else
+		% Set SVN Path to prefs...
+		setpref(pref_group,'SvnBinaries', fullfile(path, 'rps', 'etc', 'svn', 'bin'));
+	
         % RPS Paths
         addpath(genpath(fullfile(path,'rps')));
         % Blocks Paths
