@@ -210,13 +210,14 @@ try
 
         % GO back to previous directory
         cd(currentPath);
-    catch
+    catch err1
         cd(currentPath);
-        error('Error compiling s-function using legacyCodeTool...');
+        rethrow(err1);
     end
     enableDisableFig(gcf,'on');
-catch
+catch err
     enableDisableFig(gcf,'on');
+    rethrow(err);
 end
 hideLoadingAnimation(animationHandle);
 
