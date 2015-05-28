@@ -2,21 +2,25 @@
 <PackageRepository>
    <MatlabRelease name="(R2013b)">
       <SupportPackage 
-      baseproduct="Simulink" 
-      customlicense="" 
-      customlicensenotes="" 
-      displayname="TM4C1294NPDT" 
-      downloadurl="https://github.com/dakmord/RPS/releases/download/0.8" 
-      enable="1" 
-      folder="TM4C1294NPDT" 
-      fullname="Simulink Support Package for TI TivaC TM4C1294NPDT Hardware" 
-      licenseurl="http://creativecommons.org/licenses/by-nc-sa/3.0/" 
-      name="TM4C1294NPDT" 
-      platform="PCWIN64" 
-      showsplicense="no" 
-      url="https://github.com/dakmord/RPS/trunk/matlab_repo" 
-      version="0.81" 
-      visible="1">  
+		  baseproduct="Simulink" 
+		  customlicense="" 
+		  customlicensenotes="" 
+		  displayname="TM4C1294NPDT" 
+		  downloadurl="https://github.com/dakmord/RPS/releases/download/0.8" 
+		  enable="1" 
+		  folder="TM4C1294NPDT" 
+		  fullname="Simulink Support Package for TI TivaC TM4C1294NPDT Hardware" 
+		  licenseurl="http://creativecommons.org/licenses/by-nc-sa/3.0/" 
+		  name="TM4C1294NPDT" 
+		  platform="PCWIN64" 
+		  showsplicense="no" 
+		  url="https://github.com/dakmord/RPS/trunk/matlab_repo" 
+		  version="0.81" 
+		  visible="1">  
+		  <ThirdPartyPackage 
+			 licenseurl="https://github.com/energia/Energia/blob/master/license.txt" 
+			 name="Energia Software" 
+			 url="http://energia.nu/download/"/>
       </SupportPackage>
    </MatlabRelease>
 </PackageRepository>
