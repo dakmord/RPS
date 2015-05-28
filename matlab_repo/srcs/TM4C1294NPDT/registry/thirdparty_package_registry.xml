@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <!--Real-Time Toolbox Support Package Repository -->
 <RTTPackageRepository>
-    <!-- <ThirdPartyPackage name="No TP Pkg" url="">
-        <Platform name="ALL" version="1" filename="" destdir="StellarisLP" 
-                  installer="" archive="" 
-                  downloadurl="http://creativecommons.org/licenses/by-nc-sa/3.0/"
-                  installcmd="matlab:disp('No third party package to install.')" 
+    <ThirdPartyPackage name="Energia Software" url="">
+        <Platform name="PCWIN,PCWIN64" version="1" filename="" destdir="energia-0101E0014" 
+                  installer="" archive="energia-0101E0014.zip" 
+                  downloadurl="https://github.com/dakmord/RPS/releases/download/0.8"
+                  installcmd="matlab:unzip('$(DOWNLOADDIR)$(FILESEP)$(ARCHIVE)', '$(INSTALLDIR)')" 
                   removecmd="" 
-                  licenseurl="">
+                  licenseurl="https://github.com/energia/Energia/blob/master/license.txt">
         </Platform> 
        
-    </ThirdPartyPackage> -->
+    </ThirdPartyPackage>
     
     <!-- <ThirdPartyPackage name="TI ARM Toolchain" url="http://processors.wiki.ti.com/index.php/Compiler_Releases">
         <Platform name="ALL" version="5.01" filename="" destdir="ti_armcc" 

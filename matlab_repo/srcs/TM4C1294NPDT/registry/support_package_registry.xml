@@ -15,7 +15,7 @@
     customlicensenotes=""
     showsplicense="no"
     downloadurl="###REPO_URL###"
-    licenseurl="http://creativecommons.org/licenses/by-nc-sa/3.0/"
+    licenseurl="https://github.com/energia/Energia/blob/master/license.txt"
     folder="TM4C1294NPDT"
     demoxml="demo/demos.xml">
     
