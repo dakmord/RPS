@@ -4,10 +4,6 @@ disp(['### Building binary file of ', mdlName, ' for TM4C1294NPDT LaunchPad...']
 
 % Generate Custom core.a library for energia and custom libs (e.g. ethernet)
 
-
-disp('ExtMode:');
-disp(get_param( 'TM4C1294XL_test', 'EXTMode'));
-
 if isequal( get_param( mdlName, 'ExtMode') , 'off')
     return
 else
