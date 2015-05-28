@@ -48,13 +48,18 @@ try
 
             % Add GUI Shortcut
             rpsIconPath = fullfile(path, 'rps', 'etc', 'icons_18', 'bmw_icon.png');
-            AddShortcut('GraphicalUserInterface','rps_GraphicalUserInterface()',...
+            AddShortcut('Graphical User Interface','rps_GraphicalUserInterface()',...
                 rpsIconPath, rps);
 
             % Add Options Shortcut
             optionsIconPath = fullfile(path, 'rps', 'etc', 'icons_18', 'BMW-neg_com_settings_18.png');
             AddShortcut('Preferences','options()',...
                 optionsIconPath, rps);
+            
+            % Add Legacy Shortcut
+            legacyIconPath = fullfile(path, 'rps', 'etc', 'icons_18', 'c_logo.png');
+            AddShortcut('Legacy Code Tool','legacyCodeHelper()',...
+                legacyIconPath, rps);
         end
 		
         if isequal(exist(fullfile(path, 'temp'),'dir'),7)
