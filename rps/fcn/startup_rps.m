@@ -26,11 +26,22 @@ try
 		setpref(pref_group,'SvnBinaries', fullfile(path, 'rps', 'etc', 'svn', 'bin'));
 	
         % RPS Paths
-        addpath(genpath(fullfile(path,'rps')));
+        addpath(fullfile(path,'rps'));
+        addpath(genpath(fullfile(path,'rps', 'fcn')));
+        addpath(genpath(fullfile(path,'rps', 'html')));
+        addpath(genpath(fullfile(path,'rps', 'svn')));
+        addpath(genpath(fullfile(path,'rps', 'cfg')));
+        addpath(fullfile(path,'rps', 'etc'));
+        addpath(fullfile(path,'rps', 'etc', 'icons_18'));
+        addpath(genpath(fullfile(path,'rps', 'etc', 'shortcut_tools')));
         % Blocks Paths
-        addpath(genpath(fullfile(path,'blocks')));
+        addpath(fullfile(path,'blocks'));
+        addpath(genpath(fullfile(path,'blocks', 'mex')));
+        addpath(genpath(fullfile(path,'blocks', 'sfcn')));
+        % addpath(genpath(fullfile(path,'blocks', 'src'))); % Not needed
         % Help Paths
         addpath(fullfile(path,'help'));
+        addpath(fullfile(path,'help', 'html'));
         
         % Check if Shortcuts exist
         categories = GetShortcutCategories();
