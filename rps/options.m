@@ -122,7 +122,7 @@ jframe.setFigureIcon(jIcon);
 
 % Get old userconfig values ...
 [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
-    repoFolder, revision] = getUserconfigValues(fullfile('..','..','userconfig.xml'));
+    repoFolder, revision] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
 
 % create basic handles
 handles.updateInterval = updateInterval;
@@ -152,7 +152,7 @@ else
 end
 
 % Check if Credentials already saved ...
-if exist(fullfile('..','credentials.xml.aes'),'file')==2
+if exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file')==2
     set(handles.text_credentials, 'String', 'Credentials available...', 'ForegroundColor', [0 0.5 0]);
 else
     set(handles.text_credentials, 'String', 'No Credentials availabe...', 'ForegroundColor', 'red');
@@ -289,7 +289,7 @@ try
     % Check if credentials are correct
     if handles.credentialsNeeded == true
         % needed, check if correct
-        if isequal(exist(fullfile('..','credentials.xml.aes'),'file'),2)
+        if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
             % Available
             [username,password] = decryptCredentials();
         else
@@ -426,7 +426,7 @@ function btn_saveCredentials_Callback(hObject, eventdata, handles)
 if Password >0
     encryptCredentials(UserName, Password);
 end
-if exist(fullfile('..','credentials.xml.aes'),'file')==2
+if exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file')==2
     set(handles.text_credentials, 'String', 'Credentials available...', 'ForegroundColor', [0 0.5 0]);
 else
     set(handles.text_credentials, 'String', 'No Credentials stored...', 'ForegroundColor', 'red');

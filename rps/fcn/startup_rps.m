@@ -43,6 +43,9 @@ try
         addpath(fullfile(path,'help'));
         addpath(fullfile(path,'help', 'html'));
         
+		% Make Paths available
+		rehash;
+		
         % Check if Shortcuts exist
         categories = GetShortcutCategories();
         shortcutExists = false;
