@@ -368,7 +368,7 @@ try
         return;
     end
 catch err
-   hideLoadingAnimation(d); 
+   %hideLoadingAnimation(d); 
    rethrow(err);
 end
 

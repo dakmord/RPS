@@ -15,6 +15,9 @@ copyfile(fullfile(homeDir,'rps','svn','checkoutSVNSwitchRepository.m'),fullfile(
 
 % delete old svn and run checkoutSVN... in tmp folder..
 rmpath(fullfile(homeDir,'rps','svn'));
+
+rehash;
+
 checkoutSVNSwitchRepository(repoUrl, username, password);
 
 

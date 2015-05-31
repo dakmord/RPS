@@ -14,9 +14,9 @@ custom='-r HEAD';
 depth='infinity';
 
 % Delete old repo folders..
-rmpath(fullfile(homeDir,'rps'));
-rmpath(fullfile(homeDir,'blocks'));
-rmpath(fullfile(homeDir,'help'));
+rmpath(genpath(fullfile(homeDir,'rps')));
+rmpath(genpath(fullfile(homeDir,'blocks')));
+rmpath(genpath(fullfile(homeDir,'help')));
 rmdir(fullfile(homeDir,'rps'),'s');
 rmdir(fullfile(homeDir,'blocks'),'s');
 rmdir(fullfile(homeDir,'help'),'s');
@@ -27,7 +27,7 @@ blocks = strrep(fullfile(repository,'trunk', 'blocks'), '\', '/');
 help = strrep(fullfile(repository,'trunk', 'help'), '\', '/');
 
 % Define destination's
-destination = fullfile(getpref('RapidPrototypingSystem','HomeDir'));
+destination = fullfile(homeDir);
 dRps = fullfile(destination, 'rps');
 dBlocks = fullfile(destination, 'blocks');
 dHelp = fullfile(destination, 'help');
@@ -52,8 +52,29 @@ else
     [status, cmdout] = dos(cmd, '-echo');
 end
 
+% RPS Paths
+addpath(fullfile(path,'rps'));
+addpath(genpath(fullfile(path,'rps', 'fcn')));
+addpath(genpath(fullfile(path,'rps', 'html')));
+addpath(genpath(fullfile(path,'rps', 'svn')));
+addpath(genpath(fullfile(path,'rps', 'cfg')));
+addpath(fullfile(path,'rps', 'etc'));
+addpath(fullfile(path,'rps', 'etc', 'icons_18'));
+addpath(genpath(fullfile(path,'rps', 'etc', 'shortcut_tools')));
+% Blocks Paths
+addpath(fullfile(path,'blocks'));
+addpath(genpath(fullfile(path,'blocks', 'mex')));
+addpath(genpath(fullfile(path,'blocks', 'sfcn')));
+% Help Paths
+addpath(fullfile(path,'help'));
+addpath(fullfile(path,'help', 'html'));
+
+% Save all Searchpaths
+savepath();
+
 % Restart RPS Graphical User Interface
-% TODO: ?!?!?!
+rehash;
+rps_GraphicalUserInterface();
 
 end
 
