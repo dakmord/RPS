@@ -14,20 +14,20 @@ custom='-r HEAD';
 depth='infinity';
 
 % Remove RPS Paths (remove warnings while deleting folders..)
-rmpath(fullfile(path,'rps'));
-rmpath(genpath(fullfile(path,'rps', 'fcn')));
-rmpath(genpath(fullfile(path,'rps', 'html')));
-rmpath(genpath(fullfile(path,'rps', 'cfg')));
-rmpath(fullfile(path,'rps', 'etc'));
-rmpath(fullfile(path,'rps', 'etc', 'icons_18'));
-rmpath(genpath(fullfile(path,'rps', 'etc', 'shortcut_tools')));
+rmpath(fullfile(homeDir,'rps'));
+rmpath(genpath(fullfile(homeDir,'rps', 'fcn')));
+rmpath(genpath(fullfile(homeDir,'rps', 'html')));
+rmpath(genpath(fullfile(homeDir,'rps', 'cfg')));
+rmpath(fullfile(homeDir,'rps', 'etc'));
+rmpath(fullfile(homeDir,'rps', 'etc', 'icons_18'));
+rmpath(genpath(fullfile(homeDir,'rps', 'etc', 'shortcut_tools')));
 % Blocks Paths
-rmpath(fullfile(path,'blocks'));
-rmpath(genpath(fullfile(path,'blocks', 'mex')));
-rmpath(genpath(fullfile(path,'blocks', 'sfcn')));
+rmpath(fullfile(homeDir,'blocks'));
+rmpath(genpath(fullfile(homeDir,'blocks', 'mex')));
+rmpath(genpath(fullfile(homeDir,'blocks', 'sfcn')));
 % Help Paths
-rmpath(fullfile(path,'help'));
-rmpath(fullfile(path,'help', 'html'));
+rmpath(fullfile(homeDir,'help'));
+rmpath(fullfile(homeDir,'help', 'html'));
 
 % Delete old repo folders..
 cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'blocks'));
@@ -69,21 +69,21 @@ else
 end
 
 % RPS Paths
-addpath(fullfile(path,'rps'));
-addpath(genpath(fullfile(path,'rps', 'fcn')));
-addpath(genpath(fullfile(path,'rps', 'html')));
-addpath(genpath(fullfile(path,'rps', 'svn')));
-addpath(genpath(fullfile(path,'rps', 'cfg')));
-addpath(fullfile(path,'rps', 'etc'));
-addpath(fullfile(path,'rps', 'etc', 'icons_18'));
-addpath(genpath(fullfile(path,'rps', 'etc', 'shortcut_tools')));
+addpath(fullfile(homeDir,'rps'));
+addpath(genpath(fullfile(homeDir,'rps', 'fcn')));
+addpath(genpath(fullfile(homeDir,'rps', 'html')));
+addpath(genpath(fullfile(homeDir,'rps', 'svn')));
+addpath(genpath(fullfile(homeDir,'rps', 'cfg')));
+addpath(fullfile(homeDir,'rps', 'etc'));
+addpath(fullfile(homeDir,'rps', 'etc', 'icons_18'));
+addpath(genpath(fullfile(homeDir,'rps', 'etc', 'shortcut_tools')));
 % Blocks Paths
-addpath(fullfile(path,'blocks'));
-addpath(genpath(fullfile(path,'blocks', 'mex')));
-addpath(genpath(fullfile(path,'blocks', 'sfcn')));
+addpath(fullfile(homeDir,'blocks'));
+addpath(genpath(fullfile(homeDir,'blocks', 'mex')));
+addpath(genpath(fullfile(homeDir,'blocks', 'sfcn')));
 % Help Paths
-addpath(fullfile(path,'help'));
-addpath(fullfile(path,'help', 'html'));
+addpath(fullfile(homeDir,'help'));
+addpath(fullfile(homeDir,'help', 'html'));
 
 % Save all Searchpaths
 savepath();
