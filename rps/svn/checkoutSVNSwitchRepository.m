@@ -13,13 +13,29 @@ command='checkout';
 custom='-r HEAD';
 depth='infinity';
 
+% Remove RPS Paths (remove warnings while deleting folders..)
+rmpath(fullfile(path,'rps'));
+rmpath(genpath(fullfile(path,'rps', 'fcn')));
+rmpath(genpath(fullfile(path,'rps', 'html')));
+rmpath(genpath(fullfile(path,'rps', 'cfg')));
+rmpath(fullfile(path,'rps', 'etc'));
+rmpath(fullfile(path,'rps', 'etc', 'icons_18'));
+rmpath(genpath(fullfile(path,'rps', 'etc', 'shortcut_tools')));
+% Blocks Paths
+rmpath(fullfile(path,'blocks'));
+rmpath(genpath(fullfile(path,'blocks', 'mex')));
+rmpath(genpath(fullfile(path,'blocks', 'sfcn')));
+% Help Paths
+rmpath(fullfile(path,'help'));
+rmpath(fullfile(path,'help', 'html'));
+
 % Delete old repo folders..
-rmpath(genpath(fullfile(homeDir,'rps')));
-rmpath(genpath(fullfile(homeDir,'blocks')));
-rmpath(genpath(fullfile(homeDir,'help')));
-rmdir(fullfile(homeDir,'rps'),'s');
-rmdir(fullfile(homeDir,'blocks'),'s');
-rmdir(fullfile(homeDir,'help'),'s');
+cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'blocks'));
+system(cmd);
+cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'rps'));
+system(cmd);
+cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'help'));
+system(cmd);
 
 % Define repo url's
 rps = strrep(fullfile(repository,'trunk', 'rps'), '\', '/');
