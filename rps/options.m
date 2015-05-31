@@ -333,7 +333,7 @@ try
             'Switching Repository?', 'Yes','No','No');
         switch choice
             case 'Yes'
-                % TODO...
+                
             case 'No'
                 % NO
                 return;
@@ -363,6 +363,7 @@ try
     
     % Switch Repository if needed
     if switchRepo==true
+        close all;
         switchRepository(handles.url,username,password);
     end
 catch err

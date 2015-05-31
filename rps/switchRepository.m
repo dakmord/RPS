@@ -2,17 +2,19 @@ function [] = switchRepository(repoUrl,username,password)
 %SWITCHREPOSITORY Summary of this function goes here
 %   Detailed explanation goes here
 
+% Get RPS Path
+homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 % Create tmp folder in rps home, add to path and copy all needed
 % functions/scripts/files to it for updating...
-mkdir(fullfile('..','tmp'));
-addpath(fullfile('..','tmp'));
+mkdir(fullfile(homeDir,'tmp'));
+addpath(fullfile(homeDir,'tmp'));
 
-copyfile(fullfile('etc','svn'),fullfile('..','tmp','svn'));
-copyfile(fullfile('svn','checkoutSVNSwitchRepository.m'),fullfile('..','tmp','checkoutSVNSwitchRepository.m'));
+copyfile(fullfile(homeDir,'rps','etc','svn'),fullfile(homeDir,'tmp','svn'));
+copyfile(fullfile(homeDir,'rps','svn','checkoutSVNSwitchRepository.m'),fullfile(homeDir,'tmp','checkoutSVNSwitchRepository.m'));
 
 
-% if everything should be finde start function for deleting & checking out new files
-rmpath('svn');
+% delete old svn and run checkoutSVN... in tmp folder..
+rmpath(fullfile(homeDir,'rps','svn'));
 checkoutSVNSwitchRepository(repoUrl, username, password);
 
 

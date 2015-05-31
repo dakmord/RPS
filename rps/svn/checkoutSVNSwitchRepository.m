@@ -2,6 +2,9 @@ function [] = checkoutSVNSwitchRepository(repository, username, password)
 % Used to deploy in rps/tmp folder during local switch of the working copy
 % to another repository. E. g. from https://svn.repo to https://github.com
 
+% Get HomeDir
+homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
 % Define important Paths which will be needed ...
 svnExe = fullfile('svn','svn.exe');
 
@@ -11,9 +14,9 @@ custom='-r HEAD';
 depth='infinity';
 
 % Delete old repo folders..
-rmdir(fullfile('..','rps'),'s');
-rmdir(fullfile('..','blocks'),'s');
-rmdir(fullfile('..','help'),'s');
+rmdir(fullfile(homeDir,'rps'),'s');
+rmdir(fullfile(homeDir,'blocks'),'s');
+rmdir(fullfile(homeDir,'help'),'s');
 
 % Define repo url's
 rps = strrep(fullfile(repository,'trunk', 'rps'), '\', '/');
