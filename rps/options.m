@@ -365,6 +365,7 @@ try
     if switchRepo==true
         close all;
         switchRepository(handles.url,username,password);
+        return;
     end
 catch err
    hideLoadingAnimation(d); 

@@ -6,7 +6,7 @@ function [] = checkoutSVNSwitchRepository(repository, username, password)
 homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 
 % Define important Paths which will be needed ...
-svnExe = fullfile('svn','svn.exe');
+svnExe = fullfile(homeDir, 'tmp','svn', 'bin','svn.exe');
 
 % Check size of Files which will be transfered..
 command='checkout';
@@ -14,6 +14,9 @@ custom='-r HEAD';
 depth='infinity';
 
 % Delete old repo folders..
+rmpath(fullfile(homeDir,'rps'));
+rmpath(fullfile(homeDir,'blocks'));
+rmpath(fullfile(homeDir,'help'));
 rmdir(fullfile(homeDir,'rps'),'s');
 rmdir(fullfile(homeDir,'blocks'),'s');
 rmdir(fullfile(homeDir,'help'),'s');
