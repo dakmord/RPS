@@ -162,11 +162,18 @@ end
 xml = xml2struct(fullfile(handles.homeDir,'rps','cfg','repos.xml'));
 [x, y] = size(xml.urls.url);
 popup_list = {};
+userconfigItem = 1;
 
 if y > 0
     for urls = 1:y
+        % Check for url in userconfig and save poupmenu value
+        if strcmp(xml.urls.url{1,urls}.Text, handles.url)
+            % Get Value
+            userconfigItem = urls;
+        end
         if strcmp(xml.urls.url{1,urls}.Attributes.credentials, '1') || strcmp(xml.urls.url{1,urls}.Attributes.isPublic, '0')
             % Private
+            
             popup_list{end+1} = [xml.urls.url{1,urls}.Text ' (PRIVATE)' ];
         else
            % Public
@@ -180,7 +187,7 @@ end
 
 % populate items to popupmenu
 if length(popup_list)>0
-    set(handles.popupmenu_url, 'String', popup_list, 'Value', 1);
+    set(handles.popupmenu_url, 'String', popup_list, 'Value', userconfigItem);
 end
 
 

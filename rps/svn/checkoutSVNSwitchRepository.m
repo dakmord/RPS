@@ -31,11 +31,11 @@ rmpath(fullfile(homeDir,'help', 'html'));
 
 % Delete old repo folders..
 cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'blocks'));
-system(cmd);
+system(cmd,'-echo');
 cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'rps'));
-system(cmd);
+system(cmd,'-echo');
 cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'help'));
-system(cmd);
+system(cmd,'-echo');
 
 % Define repo url's
 rps = strrep(fullfile(repository,'trunk', 'rps'), '\', '/');
