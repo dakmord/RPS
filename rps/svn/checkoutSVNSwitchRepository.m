@@ -47,9 +47,9 @@ help = strrep(fullfile(repository,'trunk', 'help'), '\', '/');
 
 % Define destination's
 destination = fullfile(homeDir);
-dRps = fullfile(destination, 'rps');
-dBlocks = fullfile(destination, 'blocks');
-dHelp = fullfile(destination, 'help');
+dRps = fullfile(destination);
+dBlocks = fullfile(destination);
+dHelp = fullfile(destination);
 
 if isequal(exist(dRps,'dir'),7) || isequal(exist(dBlocks,'dir'),7) || isequal(exist(dHelp,'dir'),7)
     % Try to remove again
