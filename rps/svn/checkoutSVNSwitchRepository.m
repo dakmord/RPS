@@ -87,9 +87,9 @@ rmdir(fullfile(homeDir,'blocks'),'s')
 pause(1);
 
 % Restart TSVNCache.exe
-disp(' ### Restarting TSVNCahce.exe...');
-cmd = sprintf('TSVNCache.exe');
-[status, output] = system(cmd);
+disp(' ### Restarting TSVNCache.exe...');
+%cmd = sprintf('TSVNCache.exe');
+%[status, output] = system(cmd);
 disp(output);
 
 % Define repo url's
