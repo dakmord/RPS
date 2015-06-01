@@ -40,7 +40,6 @@ delete(fullfile(homeDir, 'rps', '*.xml'))
 delete(fullfile(homeDir, 'rps', '*.exe'))
 delete(fullfile(homeDir, 'rps', '*.txt'))
 rmdir(fullfile(homeDir, 'rps', '*.*'),'s')
-pause(1);
 rmdir(fullfile(homeDir,'rps'),'s')
 % Help
 delete(fullfile(homeDir, 'help', '*.m'))
@@ -49,7 +48,6 @@ delete(fullfile(homeDir, 'help', '*.xml'))
 delete(fullfile(homeDir, 'help', '*.exe'))
 delete(fullfile(homeDir, 'help', '*.txt'))
 rmdir(fullfile(homeDir, 'help', '*.*'),'s')
-pause(1);
 rmdir(fullfile(homeDir,'help'),'s')
 % Blocks
 delete(fullfile(homeDir, 'blocks', '*.m'))
@@ -60,7 +58,6 @@ delete(fullfile(homeDir, 'blocks', '*.xml'))
 delete(fullfile(homeDir, 'blocks', '*.exe'))
 delete(fullfile(homeDir, 'blocks', '*.txt'))
 rmdir(fullfile(homeDir, 'blocks', '*.*'),'s')
-pause(1);
 rmdir(fullfile(homeDir,'blocks'),'s')
 
 % Wait a sec...
