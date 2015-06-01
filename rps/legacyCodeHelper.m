@@ -258,7 +258,7 @@ end
 
 function actualizeListbox(hObject, handles)
 % Reset
-set(handles.files_listbox, 'String', '');
+set(handles.files_listbox, 'String', '', 'Value', 0);
 % Get all files..
 tmpString = {};
 for i=1:1:length(handles.selectedFiles)
@@ -266,18 +266,20 @@ for i=1:1:length(handles.selectedFiles)
         tmpString{end+1} = handles.selectedFiles{i}.files{p};
     end
 end
-set(handles.files_listbox, 'String', tmpString);
+set(handles.files_listbox, 'String', tmpString, 'Value', 1);
 
 
 function deleteFile(hObject, handles, fileName)
 for i=1:1:length(handles.selectedFiles)
-    for p=1:1:length(handles.selectedFiles{i}.files)
+    for p=1:1:length(handles.selectedFiles{i}.files);
         if strcmp(handles.selectedFiles{i}.files{p},fileName)
             handles.selectedFiles{i}.files(p)=[];
+            guidata(hObject, handles);
+            return;
         end
     end
 end
-guidata(hObject, handles);
+
 
 % --- Executes on button press in btn_help.
 function btn_help_Callback(hObject, eventdata, handles)
@@ -336,7 +338,7 @@ function btn_delete_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 selected = get(handles.files_listbox,'Value');
 prev_str = get(handles.files_listbox, 'String');
-if ~isempty(selected)
+if ~isempty(prev_str)
     fileName = prev_str{selected};
     % Actualize Handles
     deleteFile(hObject, handles, fileName);
@@ -349,7 +351,7 @@ if len > 0
         indices = [1:(selected(1)-1) (selected(end)+1):length(prev_str)];
     end
     prev_str = prev_str(indices);
-    set(handles.files_listbox, 'String', prev_str, 'Value', min(selected, length(prev_str)));
+    set(handles.files_listbox, 'String', prev_str, 'Value', selected);
 end
 
 

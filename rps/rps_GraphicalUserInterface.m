@@ -43,7 +43,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 22-May-2015 11:04:12
+% Last Modified by GUIDE v2.5 01-Jun-2015 00:24:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -75,7 +75,7 @@ function rps_GraphicalUserInterface_OpeningFcn(hObject, eventdata, handles, vara
 
 % Create Menu Icons
 set(hObject, 'Visible', 'on');
-pause(0.001);
+pause(0.05);
 set(hObject, 'Visible', 'off');
 addMenuIcons(hObject, handles);
 
@@ -120,6 +120,20 @@ set(handles.log_table,'Data',log);
 handles.log = log;
 handles.logFiles = files;
 
+% Create Timer Object
+AutoUpdateTimer = timer('TimerFcn', {@timerCallback, hObject, handles},... 
+                 'StartDelay',5,...
+                 'ExecutionMode', 'fixedSpacing',...
+                 'Period', (handles.updateInterval*60),...
+                 'Name', 'AutoUpdateTimer');
+
+% Check wether autoUpdate is on/off
+if handles.autoUpdate ==true
+    % activate Timer
+    start(AutoUpdateTimer);
+else
+    delete(AutoUpdateTimer);
+end
 
 % Choose default command line output for rps_GraphicalUserInterface
 handles.output = hObject;
@@ -132,6 +146,35 @@ checkForOutdated(hObject, handles);
 
 % UIWAIT makes rps_GraphicalUserInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
+
+
+function timerCallback(obj, event, hObject, handles)
+disp('### Refreshing..')
+% Fill log with actual stuff
+if handles.credentialsNeeded==1
+    % login details
+    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
+        % Available
+        [username,password] = decryptCredentials();
+    else
+        % Password Missing
+        error('Missing SVN Login/Password!');
+    end
+    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
+else
+    % without
+    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
+end
+
+set(handles.log_table,'Data',log);
+handles.log = log;
+handles.logFiles = files;
+
+% Publish handles
+guidata(hObject, handles);
+
+% Check if local repo is outdated
+checkForOutdated(hObject, handles);
 
 
 function addMenuIcons(figure, handles)
@@ -961,3 +1004,19 @@ if ~isequal(filename,0)
    % Selected and open
    open_system(fullfile(path,filename));
 end
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+timer = timerfind('Name', 'AutoUpdateTimer');
+if ~isempty(timer)
+    stop(timer);
+    delete(timer);
+end
+delete(hObject);
+
