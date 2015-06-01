@@ -405,7 +405,7 @@ function [hObject, handles] = loadUserDataToHandles(hObject,handles)
 if ~isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
     % not existing, open preferences!
     disp('### Missing userconfig.xml in your folder. Opening preferences...');
-    uiwait(options);
+    [optionsFig, switchRepository] = options;
     pause(0.5);
     if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
         % existing
