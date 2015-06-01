@@ -16,9 +16,6 @@ depth='infinity';
 % CD to homeDir
 cd(homeDir);
 
-% TSVNCache.exe parameter
-foundTSVNCache = false;
-
 % Remove RPS Paths (remove warnings while deleting folders..)
 rmpath(fullfile(homeDir,'rps'));
 rmpath(genpath(fullfile(homeDir,'rps', 'fcn')));
@@ -47,7 +44,6 @@ if isstr(output) && ~isempty(output)
             % Found it..., get PID or just close by name
             disp('### Found running TSVNCache.exe!');
             disp(' ### Stopping it...');
-            foundTSVNCache = true;
             cmd = sprintf('taskkill /F /IM TSVNCache.exe /T');
             [status, output] = system(cmd);
             disp(output);
@@ -85,12 +81,6 @@ rmdir(fullfile(homeDir,'blocks'),'s')
 
 % Wait a sec...
 pause(1);
-
-% Restart TSVNCache.exe
-disp(' ### Restarting TSVNCache.exe...');
-%cmd = sprintf('TSVNCache.exe');
-%[status, output] = system(cmd);
-disp(output);
 
 % Define repo url's
 rps = strrep(fullfile(repository,'trunk', 'rps'), '\', '/');
