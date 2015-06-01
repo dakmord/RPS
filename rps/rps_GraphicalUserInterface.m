@@ -383,7 +383,7 @@ function file_preferences_Callback(hObject, eventdata, handles)
 %uiwait(options);
 try
     enableDisableFig(gcf,'off');
-    [figure, switchRepository] = options;
+    [optionsFig, switchRepository] = options;
     if switchRepository==true
         close(gcf);
         return;
