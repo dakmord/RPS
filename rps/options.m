@@ -379,7 +379,7 @@ try
     
     % Switch Repository if needed
     if switchRepo==true
-        close all;
+        close(gcf);
         switchRepository(handles.url,username,password);
         return;
     end
