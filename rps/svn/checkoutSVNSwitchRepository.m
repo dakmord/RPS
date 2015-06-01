@@ -13,6 +13,9 @@ command='checkout';
 custom='-r HEAD';
 depth='infinity';
 
+% CD to homeDir
+cd(homeDir);
+
 % Remove RPS Paths (remove warnings while deleting folders..)
 rmpath(fullfile(homeDir,'rps'));
 rmpath(genpath(fullfile(homeDir,'rps', 'fcn')));
@@ -46,10 +49,9 @@ blocks = strrep(fullfile(repository,'trunk', 'blocks'), '\', '/');
 help = strrep(fullfile(repository,'trunk', 'help'), '\', '/');
 
 % Define destination's
-destination = fullfile(homeDir);
-dRps = fullfile(destination);
-dBlocks = fullfile(destination);
-dHelp = fullfile(destination);
+dRps = strrep(fullfile(homeDir, 'rps'), '\', '/');
+dBlocks = strrep(fullfile(homeDir, 'blocks'), '\', '/');
+dHelp = strrep(fullfile(homeDir, 'help'), '\', '/');
 
 if isequal(exist(dRps,'dir'),7) || isequal(exist(dBlocks,'dir'),7) || isequal(exist(dHelp,'dir'),7)
     % Try to remove again
