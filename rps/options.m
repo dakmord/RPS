@@ -379,9 +379,8 @@ try
     
     % Switch Repository if needed
     if switchRepo==true
-        close(gcf);
         switchRepository(handles.url,username,password);
-        return;
+        close(gcf);
     end
 catch err
    %hideLoadingAnimation(d); 
