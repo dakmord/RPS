@@ -43,7 +43,7 @@ try
         addpath(fullfile(path,'help'));
         addpath(fullfile(path,'help', 'html'));
         
-		% Make Paths available
+		% Make Files in Paths available
 		rehash;
 		
         % Check if Shortcuts exist
@@ -76,10 +76,12 @@ try
                 legacyIconPath, rps);
         end
 		
+        % Delete Install temp folder.
         if isequal(exist(fullfile(path, 'temp'),'dir'),7)
             % Delete temp dir because no longer needed
 			rmpath(fullfile(path, 'temp'));
             rmdir(fullfile(path, 'temp'),'s');
+            rehash;
         end
     else
 		error('Rapid-Prototyping-System seems to be not initialized. -> isInitialized is missing in your MATLAB preferences! If you do not know what happened, please reinstall Rapid-Prototyping-System.');

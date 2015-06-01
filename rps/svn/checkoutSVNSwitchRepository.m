@@ -6,7 +6,7 @@ function [] = checkoutSVNSwitchRepository(repository, username, password)
 homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 
 % Define important Paths which will be needed ...
-svnExe = fullfile(homeDir, 'tmp','svn', 'bin','svn.exe');
+svnExe = fullfile(homeDir, 'temp','svn', 'bin','svn.exe');
 
 % Check size of Files which will be transfered..
 command='checkout';
@@ -37,6 +37,9 @@ system(cmd,'-echo');
 cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'help'));
 system(cmd,'-echo');
 
+% Wait a sec...
+pause(1);
+
 % Define repo url's
 rps = strrep(fullfile(repository,'trunk', 'rps'), '\', '/');
 blocks = strrep(fullfile(repository,'trunk', 'blocks'), '\', '/');
@@ -47,6 +50,18 @@ destination = fullfile(homeDir);
 dRps = fullfile(destination, 'rps');
 dBlocks = fullfile(destination, 'blocks');
 dHelp = fullfile(destination, 'help');
+
+if isequal(exist(dRps,'dir'),7) || isequal(exist(dBlocks,'dir'),7) || isequal(exist(dHelp,'dir'),7)
+    % Try to remove again
+    cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'blocks'));
+    system(cmd,'-echo');
+    cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'rps'));
+    system(cmd,'-echo');
+    cmd = sprintf('rd /S /Q %s',fullfile(homeDir,'help'));
+    system(cmd,'-echo'); 
+    % Wait two sec.
+    pause(2);
+end
 
 % Checkout rps,blocks and help from repo/trunk
 if isempty(username)
@@ -68,30 +83,15 @@ else
     [status, cmdout] = dos(cmd, '-echo');
 end
 
-% RPS Paths
-addpath(fullfile(homeDir,'rps'));
-addpath(genpath(fullfile(homeDir,'rps', 'fcn')));
-addpath(genpath(fullfile(homeDir,'rps', 'html')));
-addpath(genpath(fullfile(homeDir,'rps', 'svn')));
-addpath(genpath(fullfile(homeDir,'rps', 'cfg')));
-addpath(fullfile(homeDir,'rps', 'etc'));
-addpath(fullfile(homeDir,'rps', 'etc', 'icons_18'));
-addpath(genpath(fullfile(homeDir,'rps', 'etc', 'shortcut_tools')));
-% Blocks Paths
-addpath(fullfile(homeDir,'blocks'));
-addpath(genpath(fullfile(homeDir,'blocks', 'mex')));
-addpath(genpath(fullfile(homeDir,'blocks', 'sfcn')));
-% Help Paths
-addpath(fullfile(homeDir,'help'));
-addpath(fullfile(homeDir,'help', 'html'));
-
-% Save all Searchpaths
-savepath();
+% wait a sec...
+pause(0.5);
 
 % Restart RPS Graphical User Interface
 rehash;
-rps_GraphicalUserInterface();
 
+% Add Base Paths and initialize
+startup_rps;
+disp('### Finished switching Subversion Repository, you can start the GUI again.')
 end
 
 
