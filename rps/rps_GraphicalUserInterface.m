@@ -383,7 +383,11 @@ function file_preferences_Callback(hObject, eventdata, handles)
 %uiwait(options);
 try
     enableDisableFig(gcf,'off');
-    uiwait(options);
+    [figure, switchRepository] = options;
+    if switchRepository==true
+        close(gcf);
+        return;
+    end
     [hObject, handles] = loadUserDataToHandles(hObject, handles);
 
     % Update handles structure

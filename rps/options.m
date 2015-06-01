@@ -22,7 +22,7 @@ function varargout = options(varargin)
 
 % Edit the above text to modify the response to help options
 
-% Last Modified by GUIDE v2.5 13-May-2015 10:55:27
+% Last Modified by GUIDE v2.5 01-Jun-2015 12:49:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -199,7 +199,7 @@ handles.output = hObject;
 guidata(hObject, handles);
 
 % UIWAIT makes options wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+uiwait(hObject);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = options_OutputFcn(hObject, eventdata, handles) 
@@ -210,7 +210,10 @@ function varargout = options_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+varargout{2} = handles.switchRepository;
 
+% The figure can be deleted now
+delete(hObject);
 
 
 function updateInterval_edit_Callback(hObject, eventdata, handles)
@@ -353,11 +356,16 @@ try
         %
         % Call Function 
         switchRepo = true;
+        handles.switchRepository = true;
     else
         % Same Repo, nothing to do right now.
         switchRepo = false;
+        handles.switchRepository = false;
     end
 
+    % Save Handles
+    guidata(hObject, handles);
+    
     d.setProgressStatusLabel('Creating userconfig...');
     
     % Generate XML
@@ -378,7 +386,6 @@ catch err
    %hideLoadingAnimation(d); 
    rethrow(err);
 end
-
 
 function str = getCurrentPopupString(hh)
 %# getCurrentPopupString returns the currently selected string in the popupmenu with handle hh
@@ -536,3 +543,26 @@ if strcmp(eventdata.Key,'f1')
     %open help
     showdemo options;
 end
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+if isequal(get(hObject, 'waitstatus'), 'waiting')
+    % The GUI is still in UIWAIT, call UIRESUME
+    uiresume(hObject);
+else
+    % The GUI is no longer waiting, just close it
+    delete(hObject);
+end
+
+
+% --- Executes during object deletion, before destroying properties.
+function figure1_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
