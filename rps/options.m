@@ -132,6 +132,7 @@ handles.credentialsNeeded = credentialsNeeded;
 handles.url = url;
 handles.repoFolder = repoFolder;
 handles.revision = revision;
+handles.switchRepository = false;
 
 % fill in gui components
 set(handles.customUrl_cb, 'Value', customUrl);
