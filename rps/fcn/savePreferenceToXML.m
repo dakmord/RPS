@@ -9,7 +9,20 @@ switch command
         handles.simulinkPereferences = value;
         % Generate XML
         ret = saveToXmlFile(status, handles);
-        
+    case 'revision'
+        % Get Handles
+        [status, handles] = getActualInformation();
+        % Change actual value
+        handles.revision = value;
+        % Generate XML
+        ret = saveToXmlFile(status, handles);
+    case 'repoFolder'
+        % Get Handles
+        [status, handles] = getActualInformation();
+        % Change actual value
+        handles.repoFolder = value;
+        % Generate XML
+        ret = saveToXmlFile(status, handles);
     otherwise
         return;
 end

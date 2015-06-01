@@ -431,6 +431,15 @@ handles.revision = revision;
 handles.maxLogEntries = 20;
 handles.simulinkPereferences = simPreferences;
 
+% Maybe something changed, checkLocalWorkingCopy for Revision, ..
+[revision, folder, repoHomeUrl] = checkLocalWorkingCopy(fullfile(handles.homeDir,'rps'));
+handles.revision = revision;
+handles.repoFolder = folder;
+
+% Store Revision & Folder into userconfig.xml
+[ret] = savePreferenceToXML('revision', handles.revision);
+[ret] = savePreferenceToXML('repoFolder', handles.repoFolder);
+
 % Actualize components
 set(handles.revision_edit,'String',num2str(handles.revision));
 set(handles.repo_edit,'String',handles.repoFolder);
