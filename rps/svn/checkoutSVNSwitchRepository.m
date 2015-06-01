@@ -53,31 +53,31 @@ end
 
 % Delete old repo folders..
 % RPS
-delete(fullfile(homeDir, 'rps', '*.m'))
-delete(fullfile(homeDir, 'rps', '*.fig'))
-delete(fullfile(homeDir, 'rps', '*.xml'))
-delete(fullfile(homeDir, 'rps', '*.exe'))
-delete(fullfile(homeDir, 'rps', '*.txt'))
-rmdir(fullfile(homeDir, 'rps', '*.*'),'s')
-rmdir(fullfile(homeDir,'rps'),'s')
+delete(fullfile(homeDir, 'rps', '*.m'));
+delete(fullfile(homeDir, 'rps', '*.fig'));
+delete(fullfile(homeDir, 'rps', '*.xml'));
+delete(fullfile(homeDir, 'rps', '*.exe'));
+delete(fullfile(homeDir, 'rps', '*.txt'));
+rmdir(fullfile(homeDir, 'rps', '*.*'),'s');
+rmdir(fullfile(homeDir,'rps'),'s');
 % Help
-delete(fullfile(homeDir, 'help', '*.m'))
-delete(fullfile(homeDir, 'help', '*.fig'))
-delete(fullfile(homeDir, 'help', '*.xml'))
-delete(fullfile(homeDir, 'help', '*.exe'))
-delete(fullfile(homeDir, 'help', '*.txt'))
-rmdir(fullfile(homeDir, 'help', '*.*'),'s')
-rmdir(fullfile(homeDir,'help'),'s')
+delete(fullfile(homeDir, 'help', '*.m'));
+delete(fullfile(homeDir, 'help', '*.fig'));
+delete(fullfile(homeDir, 'help', '*.xml'));
+delete(fullfile(homeDir, 'help', '*.exe'));
+delete(fullfile(homeDir, 'help', '*.txt'));
+rmdir(fullfile(homeDir, 'help', '*.*'),'s');
+rmdir(fullfile(homeDir,'help'),'s');
 % Blocks
-delete(fullfile(homeDir, 'blocks', '*.m'))
-delete(fullfile(homeDir, 'blocks', '*.slx'))
-delete(fullfile(homeDir, 'blocks', '*.mdl'))
-delete(fullfile(homeDir, 'blocks', '*.fig'))
-delete(fullfile(homeDir, 'blocks', '*.xml'))
-delete(fullfile(homeDir, 'blocks', '*.exe'))
-delete(fullfile(homeDir, 'blocks', '*.txt'))
-rmdir(fullfile(homeDir, 'blocks', '*.*'),'s')
-rmdir(fullfile(homeDir,'blocks'),'s')
+delete(fullfile(homeDir, 'blocks', '*.m'));
+delete(fullfile(homeDir, 'blocks', '*.slx'));
+delete(fullfile(homeDir, 'blocks', '*.mdl'));
+delete(fullfile(homeDir, 'blocks', '*.fig'));
+delete(fullfile(homeDir, 'blocks', '*.xml'));
+delete(fullfile(homeDir, 'blocks', '*.exe'));
+delete(fullfile(homeDir, 'blocks', '*.txt'));
+rmdir(fullfile(homeDir, 'blocks', '*.*'),'s');
+rmdir(fullfile(homeDir,'blocks'),'s');
 
 % Wait a sec...
 pause(1);
