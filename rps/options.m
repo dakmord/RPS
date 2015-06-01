@@ -375,13 +375,15 @@ try
     hideLoadingAnimation(d);
     
     disp(' ### DONE saving preferences!');
-    close(gcf);
     
     % Switch Repository if needed
     if switchRepo==true
         switchRepository(handles.url,username,password);
-        close(gcf);
     end
+    
+    % Close Options Menu
+    close(gcf);
+    
 catch err
    %hideLoadingAnimation(d); 
    rethrow(err);
