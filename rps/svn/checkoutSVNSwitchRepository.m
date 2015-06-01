@@ -89,6 +89,7 @@ end
 pause(0.5);
 
 % Restart RPS Graphical User Interface
+addpath(fullfile(homeDir,'rps','fcn'));
 rehash;
 
 % Add Base Paths and initialize
