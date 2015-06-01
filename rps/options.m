@@ -22,7 +22,7 @@ function varargout = options(varargin)
 
 % Edit the above text to modify the response to help options
 
-% Last Modified by GUIDE v2.5 01-Jun-2015 12:49:02
+% Last Modified by GUIDE v2.5 01-Jun-2015 20:57:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -119,6 +119,10 @@ warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
 jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','BMW-neg_com_settings_18.png'));
 jframe.setFigureIcon(jIcon);
+
+% Load Preferences icon
+pref_icon = imread(fullfile(handles.homeDir,'rps','etc','icons_18', 'preferences-icon.png'));
+set(handles.btn_icon, 'CData', pref_icon);
 
 % Get old userconfig values ...
 [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
@@ -566,5 +570,12 @@ end
 % --- Executes during object deletion, before destroying properties.
 function figure1_DeleteFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in btn_icon.
+function btn_icon_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_icon (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)

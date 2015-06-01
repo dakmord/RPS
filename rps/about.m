@@ -75,8 +75,8 @@ guidata(hObject, handles);
 axes(handles.axes1)
 [I] = imread(fullfile('etc','icons_18','BMW-Logo-33.jpg'));
 image(I);
-axis off
-axis image
+axis off;
+axis image;
 
 
 % --- Outputs from this function are returned to the command line.
