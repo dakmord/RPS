@@ -6,7 +6,7 @@ svnExe = fullfile(svnBin,'svn.exe');
 % Initialize Commandline call
 command='copy';
 revision = ['-r ' revision];
-custom = '--force-log';
+custom = '--force-log --parents';
 message = ['--message "' message '"'];
 
 % replace path seperators

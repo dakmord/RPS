@@ -22,7 +22,7 @@ function varargout = branchTagSvnDialog(varargin)
 
 % Edit the above text to modify the response to help branchTagSvnDialog
 
-% Last Modified by GUIDE v2.5 17-May-2015 20:07:56
+% Last Modified by GUIDE v2.5 01-Jun-2015 21:49:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,7 +80,7 @@ handles.output = hObject;
 guidata(hObject, handles);
 
 % UIWAIT makes branchTagSvnDialog wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+uiwait(hObject);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -93,6 +93,8 @@ function varargout = branchTagSvnDialog_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+% The figure can be deleted now
+delete(hObject);
 
 % --- Executes on button press in btn_ok.
 function btn_ok_Callback(hObject, eventdata, handles)
@@ -100,68 +102,76 @@ function btn_ok_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Get all component informations...
-handles.log = get(handles.edit_log, 'String');
-handles.repoUrl = get(handles.edit_repoUrl, 'String');
-handles.localRevision = str2num(get(handles.edit_localRevision, 'String'));
-handles.localFolder = get(handles.edit_localFolder, 'String');
-handles.tag = get(handles.radio_tag, 'Value');
-handles.branch = get(handles.radio_branch, 'Value');
-handles.name = get(handles.edit_name, 'String');
+% Show Loading Animation
+d = showLoadingAnimation('Creating Branch/Tag', 'Please wait...');
+try
+    % Get all component informations...
+    handles.log = get(handles.edit_log, 'String');
+    handles.repoUrl = get(handles.edit_repoUrl, 'String');
+    handles.localRevision = str2num(get(handles.edit_localRevision, 'String'));
+    handles.localFolder = get(handles.edit_localFolder, 'String');
+    handles.tag = get(handles.radio_tag, 'Value');
+    handles.branch = get(handles.radio_branch, 'Value');
+    handles.name = get(handles.edit_name, 'String');
 
-% Get Revision out of Popupmenu
-str = getCurrentPopupString(handles.popupmenu_revision);
-if strcmp(str, '"Revision Number"')
-    % Revision by number
-    handles.revision = str2num(get(handles.edit_revision, 'String'));
-else
-    % Predefined Revision
-    handles.revision = str;
-end
-
-% Check if Input Paramaters are all availabe
-if isempty(handles.name) || isempty(handles.log) || isempty(handles.revision)
-    % error missing parameters
-    errordlg('Please fill in all marked input parameters.', 'Missing Informations!');
-    error('Please fill in all marked input parameters.');
-end
-
-% Check for SVN-Password
-if handles.passwordNeeded == true
-    % Look for credentials
-    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-        % Available
-        [username,password] = decryptCredentials();
+    % Get Revision out of Popupmenu
+    str = getCurrentPopupString(handles.popupmenu_revision);
+    if strcmp(str, '"Revision Number"')
+        % Revision by number
+        handles.revision = str2num(get(handles.edit_revision, 'String'));
     else
-        % Password Missing
-        errordlg('Missing SVN Login/Password. Please save your login details.', 'Missing Login Information!');
-        error('Missing SVN Login/Password!');
+        % Predefined Revision
+        handles.revision = str;
     end
-else
-    % not needed
-    username = '';
-    password = '';
-end
 
-% Get local URL/Source
-sourceUrl = fullfile(handles.repoUrl, handles.edit_localFolder);
+    % Check if Input Paramaters are all availabe
+    if isempty(handles.name) || isempty(handles.log) || isempty(handles.revision)
+        % error missing parameters
+        uiwait(errordlg('Please fill in all marked input parameters.', 'Missing Informations!'));
+        error('Please fill in all marked input parameters.');
+    end
 
-% Run SVN Command...
-if handles.tag>handles.branch
-    % Create Tag
-    destinationUrl = fullfile(handles.repoUrl, 'tags', handles.name);
-    [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'blocks'), fullfile(destinationUrl,'blocks'), username, password);
-    [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
-else
-    % Create Branch
-    destinationUrl = fullfile(handles.repoUrl, 'branches', handles.name);
-    [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'blocks'), fullfile(destinationUrl,'blocks'), username, password);
-    [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
-end
-if isequal(info,-1)
-    error('Error creating Branch/Tag. Something went wrong (Conncetion, Login, ...).');
-end
+    % Check for SVN-Password
+    if handles.passwordNeeded == true
+        % Look for credentials
+        if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
+            % Available
+            [username,password] = decryptCredentials();
+        else
+            % Password Missing
+            uiwait(errordlg('Missing SVN Login/Password. Please save your login details.', 'Missing Login Information!'));
+            error('Missing SVN Login/Password!');
+        end
+    else
+        % not needed
+        username = '';
+        password = '';
+    end
 
+    % Get local URL/Source
+    sourceUrl = fullfile(handles.repoUrl{1}, handles.localFolder);
+
+    % Run SVN Command...
+    if handles.tag>handles.branch
+        % Create Tag
+        destinationUrl = fullfile(handles.repoUrl{1}, 'tags', handles.name);
+        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'blocks'), fullfile(destinationUrl,'blocks'), username, password);
+        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
+    else
+        % Create Branch
+        destinationUrl = fullfile(handles.repoUrl{1}, 'branches', handles.name);
+        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'blocks'), fullfile(destinationUrl,'blocks'), username, password);
+        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
+    end
+    if isequal(info,-1)
+        error('Error creating Branch/Tag. Something went wrong (Conncetion, Login, ...).');
+    end
+    hideLoadingAnimation(d);
+    close(gcf);
+catch err
+    hideLoadingAnimation(d);
+    rethrow(err);
+end
 
 % --- Executes on button press in btn_cancel.
 function btn_cancel_Callback(hObject, eventdata, handles)
@@ -415,7 +425,6 @@ else
 end
 
 
-
 function edit_log_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_log (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -435,4 +444,20 @@ function edit_log_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+if isequal(get(hObject, 'waitstatus'), 'waiting')
+    % The GUI is still in UIWAIT, call UIRESUME
+    uiresume(hObject);
+else
+    % The GUI is no longer waiting, just close it
+    delete(hObject);
 end

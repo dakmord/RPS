@@ -1,11 +1,15 @@
-function [] = updateSVN(workingCopy, username, password)
+function [] = updateSVN(workingCopy, username, password, revision)
 % Get Parent Dir _> ...\Rapid-Prototyping-System\
 svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
 svnExe = fullfile(svnBin,'svn.exe');
 
 %Update current folder..
 command='update';
-flags='-r HEAD';
+if ischar(revision)
+    flags=sprintf('-r %s', revision);
+elseif isnumeric(revision)
+    flags=sprintf('-r %i', revision);
+end
 custom='';
 
 if isempty(username)

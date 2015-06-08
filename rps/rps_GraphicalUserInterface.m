@@ -43,7 +43,7 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 01-Jun-2015 00:24:46
+% Last Modified by GUIDE v2.5 01-Jun-2015 21:40:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -278,18 +278,12 @@ function svn_update_Callback(hObject, eventdata, handles)
 % hObject    handle to svn_update (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-statusbar('Updating working copy...');
-d = showLoadingAnimation('Updating working copy...', 'Please wait, updating /blocks/...');
-[username,password] = readEncryptedPassword(hObject, handles);
-updateSVN(fullfile(handles.homeDir,'blocks'), username, password);
-d.setProgressStatusLabel('Please wait, updating /help/...');
-updateSVN(fullfile(handles.homeDir,'help'), username, password);
-d.setProgressStatusLabel('Please wait, updating /rps/...');
-updateSVN(fullfile(handles.homeDir,'rps'), username, password);
+
+% Start Update Dialog with revision
+updateDialog({handles.credentialsNeeded}, handles.url);
 
 %Updating gui... and configuration file
-d.setProgressStatusLabel('Please wait, updating gui...');
-[revision, folder, repoHomeUrl] = checkLocalWorkingCopy(fullfile(handles.homeDir,'rps'));
+[revision, folder, repoHomeUrl] = checkLocalWorkingCopy(fullfile(handles.homeDir,'blocks'));
 handles.revision = revision;
 handles.repoFolder = folder;
 
@@ -305,9 +299,6 @@ guidata(hObject, handles);
 
 % Update GUI
 checkForOutdated(hObject, handles);
-
-statusbar('');
-hideLoadingAnimation(d);
 
 % Store in userconfig.xml
 createUserconfigXML(hObject, handles);
@@ -557,11 +548,18 @@ function svn_branch_Callback(hObject, eventdata, handles)
 enableDisableFig(gcf,'off');
 % Info: {1} = Repository URL, {2} = Local Revision, {3} = Local Folder, {4}
 % = passwordNeeded
-url = handles.url;
-assignin('base', 'str', url);
-uiwait(branchTagSvnDialog(url,handles.revision,handles.repoFolder, handles.credentialsNeeded));
-enableDisableFig(gcf,'on');
-figure(gcf);
+try
+    url = handles.url;
+    branchTagSvnDialog({url},handles.revision,handles.repoFolder, handles.credentialsNeeded);
+    enableDisableFig(gcf,'on');
+    figure(gcf);
+catch err
+    enableDisableFig(gcf,'on');
+    figure(gcf);
+    rethrow(err);
+end
+
+
 
 % --------------------------------------------------------------------
 function svn_switch_Callback(hObject, eventdata, handles)
@@ -572,19 +570,37 @@ enableDisableFig(gcf,'off');
 % Info: {1} = Repository URL, {2} = Local Revision, {3} = Local Folder, {4}
 % = passwordNeeded
 try
-    uiwait(switchSvnDialog(...
-        handles.url,...
+    [switchFig, isSwitched, newFolder] = switchSvnDialog(...
+        {handles.url},...
         handles.revision,...
         handles.repoFolder,...
-        handles.credentialsNeeded));
-catch
-    % Error
+        handles.credentialsNeeded);
+    
+    % Handle SwitchDialog Outputs (Switched? to which folder?)
+    if isSwitched
+        % Load Userconfig and add it to XML
+        if ischar(newFolder)
+            [ret] = savePreferenceToXML('repoFolder', newFolder);
+            set(handles.repo_edit, 'String', newFolder);
+            
+            % Publish to handles
+            handles.repoFolder = newFolder;
+            guidata(hObject, handles);
+            
+            % Refresh log
+            checkUpdates_btn_Callback(hObject, eventdata, handles);
+        end
+    end
+    
     enableDisableFig(gcf,'on');
     figure(gcf);
-    error('Error while loading Switch SVN-Dialog.');
+catch err
+    % Error
+    enableDisableFig(hObject,'on');
+    figure(gcf);
+    rethrow(err);
 end
-enableDisableFig(gcf,'on');
-figure(gcf);
+
 
 % --------------------------------------------------------------------
 function supportPkg_install_Callback(hObject, eventdata, handles)
@@ -671,32 +687,6 @@ checkForOutdated(hObject, handles);
 statusbar('');
 hideLoadingAnimation(animationHandle);
 figure(gcf);
-
-
-
-
-function [username,password] = readEncryptedPassword(hObject, handles)
-% Read password/login from file
-if handles.credentialsNeeded==1
-    % login details
-    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-        % Available
-        [username,password] = decryptCredentials();
-    else
-        % Password Missing
-        error('Missing SVN Login/Password!');
-    end
-else
-   % Not needed
-   username = '';
-   password = '';
-end
-if credentialsValiditySVN(handles.url, username, password)==1
-    % could be correct
-else
-    % wrong
-    errordlg('Please check your saved svn login/password. Might be wrong!','Wrong password/login!?');
-end
 
 
 function repo_edit_Callback(hObject, eventdata, handles)
@@ -958,6 +948,10 @@ function svn_delete_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Start Update Dialog with revision
+deleteSvnDialog({handles.url}, handles.credentialsNeeded, handles.repoFolder);
+
+figure(gcf);
 
 % --------------------------------------------------------------------
 function file_open_Callback(hObject, eventdata, handles)
@@ -1032,4 +1026,3 @@ if ~isempty(timer)
     delete(timer);
 end
 delete(hObject);
-
