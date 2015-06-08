@@ -23,6 +23,9 @@ function varargout = switchSvnDialog(varargin)
 % Edit the above text to modify the response to help switchSvnDialog
 
 % Last Modified by GUIDE v2.5 02-Jun-2015 01:21:19
+%               by Daniel Schneider(EK-704), 01.06.2015, Created Switch Dialog
+%               by Daniel Schneider(EK-704), 08.06.2015, Bugfix because subfolder switch command not possible
+%               by ...
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -334,18 +337,21 @@ try
     % Run SVN Command...
     if handles.isTag
         % Switch to Tag
+        % ###Bugfix: removed svn switch from subfolders, 08.06.2015, Daniel Schneider
         toPath = fullfile(handles.repoUrl, 'tags', handles.tag);
         handles.newFolder = fullfile('tags',handles.tag);
         [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'), username, password);
         [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'), username, password);
     elseif handles.isBranch
         % Switch to Branch
+        % ###Bugfix: removed svn switch from subfolders, 08.06.2015, Daniel Schneider
         toPath = fullfile(handles.repoUrl, 'branches', handles.branch);
         handles.newFolder = fullfile('branches',handles.branch);
         [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'), username, password);
         [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'), username, password);
     elseif handles.isTrunk
         % Switch to Trunk
+        % ###Bugfix: removed svn switch from subfolders, 08.06.2015, Daniel Schneider
         toPath = fullfile(handles.repoUrl, 'trunk');
         handles.newFolder = 'trunk';
         [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'), username, password);

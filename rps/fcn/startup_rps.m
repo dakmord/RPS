@@ -62,7 +62,7 @@ try
 
             % Add GUI Shortcut
             rpsIconPath = fullfile(path, 'rps', 'etc', 'icons_18', 'bmw_icon.png');
-            AddShortcut('Graphical User Interface','rps_GraphicalUserInterface()',...
+            AddShortcut('Rapid-Prototyping-System','rps_GraphicalUserInterface()',...
                 rpsIconPath, rps);
 
             % Add Options Shortcut
@@ -74,6 +74,19 @@ try
             legacyIconPath = fullfile(path, 'rps', 'etc', 'icons_18', 'c_logo.png');
             AddShortcut('Legacy Code Tool','legacyCodeHelper()',...
                 legacyIconPath, rps);
+            
+            % Add CD to RPS Shortcut
+            cdDirIcon = fullfile(path, 'rps', 'etc', 'icons_18', 'folder_icon.png');
+            AddShortcut('RPS Folder','cd(getpref(''RapidPrototypingSystem'', ''HomeDir''));',...
+                cdDirIcon, rps);
+            
+            % Add CD to Blocks Shortcut
+            AddShortcut('Blocks Folder','cd(fullfile(getpref(''RapidPrototypingSystem'', ''HomeDir''),''blocks''));',...
+                cdDirIcon, rps);
+            
+            % Add shortcut RPS in Explorer
+            AddShortcut('Open RPS in Explorer','dos(sprintf(''explorer %s'',getpref(''RapidPrototypingSystem'',''HomeDir'')));',...
+                cdDirIcon, rps);
         end
 		
         % Delete Install temp folder.

@@ -23,6 +23,8 @@ function varargout = deleteSvnDialog(varargin)
 % Edit the above text to modify the response to help deleteSvnDialog
 
 % Last Modified by GUIDE v2.5 03-Jun-2015 15:29:36
+%               by Daniel Schneider(EK-704), 08.06.2015, Bugfix in delete branch/tag.
+%               ...
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -297,7 +299,7 @@ set(handles.popup_branch, 'Enable', 'on');
 handles.isTag = false;
 handles.isBranch = true;
 handles.tag = '';
-handles.branch = getCurrentPopupString(handles.popup_tag);
+handles.branch = getCurrentPopupString(handles.popup_branch);
 guidata(hObject, handles);
 
 % --- Executes on button press in radio_tag.
@@ -315,7 +317,7 @@ set(handles.popup_branch, 'Enable', 'off');
 % Publish handles
 handles.isTag = true;
 handles.isBranch = false;
-handles.tag = getCurrentPopupString(handles.popup_branch);
+handles.tag = getCurrentPopupString(handles.popup_tag);
 handles.branch = '';
 guidata(hObject, handles);
 

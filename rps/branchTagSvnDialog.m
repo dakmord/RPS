@@ -23,6 +23,9 @@ function varargout = branchTagSvnDialog(varargin)
 % Edit the above text to modify the response to help branchTagSvnDialog
 
 % Last Modified by GUIDE v2.5 01-Jun-2015 21:49:52
+%               by Daniel Schneider(EK-704), 01.06.2015, Created Branch/Tag Dialog
+%               by Daniel Schneider(EK-704), 08.06.2015, Bugfix because subfolder copy command not possible
+%               by ...
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -153,15 +156,17 @@ try
 
     % Run SVN Command...
     if handles.tag>handles.branch
-        % Create Tag
+        % Create Tag    
+        % ###Bugfix: removed svn copy from subfolders, 08.06.2015, Daniel Schneider
         destinationUrl = fullfile(handles.repoUrl{1}, 'tags', handles.name);
-        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'blocks'), fullfile(destinationUrl,'blocks'), username, password);
-        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
+        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl), fullfile(destinationUrl), username, password);
+        %[info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
     else
         % Create Branch
+        % ###Bugfix: removed svn copy from subfolders, 08.06.2015, Daniel Schneider
         destinationUrl = fullfile(handles.repoUrl{1}, 'branches', handles.name);
-        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'blocks'), fullfile(destinationUrl,'blocks'), username, password);
-        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
+        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl), fullfile(destinationUrl), username, password);
+        %[info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
     end
     if isequal(info,-1)
         error('Error creating Branch/Tag. Something went wrong (Conncetion, Login, ...).');
