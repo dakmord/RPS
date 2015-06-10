@@ -3,7 +3,7 @@
 <RTTPackageRepository>
     <SupportPackage
     name="TM4C1294NPDT"
-    version="0.83"
+    version="0.9"
     platform="PCWIN,PCWIN64"
     visible="1"
     enable="1"
