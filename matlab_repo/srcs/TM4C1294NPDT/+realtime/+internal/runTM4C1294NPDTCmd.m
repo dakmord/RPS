@@ -71,7 +71,7 @@ function generateCoreLibrary
         %# process each *.o file
         for i=1:length(fNames)
             tmpFile = fullfile(fPath, fNames{i});
-            cmd=sprintf('%s -rcs %s %s', arPath, libFile, tmpFile);
+            cmd=sprintf('%s -rcs "%s" "%s"', arPath, libFile, tmpFile);
             [status, cmdout] = dos(cmd); 
         end
 
@@ -92,11 +92,11 @@ function generateBasicLibObjectFiles
     fNames = strcat({fNames.name});
     % compile each file
     flags = '-c -Os -w -ffunction-sections -fdata-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -DF_CPU=120000000L -MMD -DARDUINO=101 -DENERGIA=14';
-    includes =['-I' TivaWareDir ' -I' fullfile(TivaWareDir, 'driverlib')];
+    includes =['-I"' TivaWareDir '" -I"' fullfile(TivaWareDir, 'driverlib') '"'];
     for i=1:length(fNames)
         tmpFile = fullfile(TivaWareDir, fNames{i});
         if ~isequal(fNames{i}, 'startup_gcc.c') % excluding startup_gcc.c because already in src dir
-        [cmd]=sprintf('%s %s %s %s -o %s', gccPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
+        [cmd]=sprintf('%s %s %s "%s" -o "%s"', gccPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
         [status, cmdout] = dos(cmd);
         end
     end
@@ -107,11 +107,11 @@ function generateBasicLibObjectFiles
     fNames = strcat({fNames.name});
     %# compile each file
     flags = '-c -Os -w -ffunction-sections -fdata-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -DF_CPU=120000000L -MMD -DARDUINO=101 -DENERGIA=14';
-    includes =['-I' TivaWareDir ' -I' fullfile(TivaWareDir, 'driverlib')];
+    includes =['-I"' TivaWareDir '" -I"' fullfile(TivaWareDir, 'driverlib') '"'];
     for i=1:length(fNames)
         tmpFile = fullfile(TivaWareDir, fNames{i});
         if ~isequal(fNames{i}, 'main.cpp') % excluding main.cpp because simulink is generating a main
-        [cmd]=sprintf('%s %s %s %s -o %s', gppPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
+        [cmd]=sprintf('%s %s %s "%s" -o "%s"', gppPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
         [status, cmdout] = dos(cmd);
         end
     end
@@ -150,10 +150,10 @@ function generateCustomLibObjectFiles
         fNames = dir( fullfile(fPath,'*.c') );
         fNames = strcat({fNames.name});
         % compile each *.c file
-        includes =['-I' TivaWareDir ' -I' pathCell{p} ' -I' ethernetDir ' -I' fullfile(energiaVariantsDir, 'launchpad_129')];
+        includes =['-I"' TivaWareDir '" -I"' pathCell{p} '" -I"' ethernetDir '" -I"' fullfile(energiaVariantsDir, 'launchpad_129') '"'];
         for i=1:length(fNames)
             tmpFile = fullfile(pathCell{p}, fNames{i});
-            [cmd]=sprintf('%s %s %s %s -o %s', gccPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
+            [cmd]=sprintf('%s %s %s "%s" -o "%s"', gccPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
             [status, cmdout] = dos(cmd);
             % Check for Errors during compilation
             if status==1
@@ -166,7 +166,7 @@ function generateCustomLibObjectFiles
         % compile each *.c file
         for i=1:length(fNames)
             tmpFile = fullfile(pathCell{p}, fNames{i});
-            [cmd]=sprintf('%s %s %s %s -o %s', gppPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
+            [cmd]=sprintf('%s %s %s "%s" -o "%s"', gppPath,flags, includes, tmpFile, [fullfile(pwd,'libs', fNames{i}) '.o']);
             [status, cmdout] = dos(cmd);
             % Check for Errors during compilation
             if status==1
