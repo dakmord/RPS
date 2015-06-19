@@ -22,7 +22,7 @@ function varargout = legacyCodeHelper(varargin)
 
 % Edit the above text to modify the response to help legacyCodeHelper
 
-% Last Modified by GUIDE v2.5 11-May-2015 23:41:31
+% Last Modified by GUIDE v2.5 13-Jun-2015 21:36:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,6 +77,10 @@ jframe=get(hObject,'javaframe');
 jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','c_logo.png'));
 jframe.setFigureIcon(jIcon);
 
+% Load svn icon
+iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
+btn_im = imread(fullfile(iconsFolder, 'c_logo_big.jpg'));
+set(handles.btn_icon, 'CData', btn_im);
 
 % Choose default command line output for legacyCodeHelper
 handles.output = hObject;
@@ -406,7 +410,8 @@ function outputFunction_btn_Callback(hObject, eventdata, handles)
 % hObject    handle to outputFunction_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+html = 'help\simulink\sfg\integrating-existing-c-functions-into-simulink-models-with-the-legacy-code-tool.html#bq4g1es-6';
+web(fullfile(matlabroot,html));
 
 
 function edit5_Callback(hObject, eventdata, handles)
@@ -545,3 +550,17 @@ if strcmp(eventdata.Key,'f1')
     %open help
     showdemo legacyCodeHelper;
 end
+
+
+% --- Executes on button press in pushbutton10.
+function pushbutton10_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in btn_icon.
+function btn_icon_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_icon (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

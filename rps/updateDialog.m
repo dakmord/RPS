@@ -59,7 +59,7 @@ iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
 % Custom GUI Icon
 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
-jIcon=javax.swing.ImageIcon(fullfile(iconsFolder, 'svn.png'));
+jIcon=javax.swing.ImageIcon(fullfile(iconsFolder, 'BMW-neg_act_download_18.png'));
 jframe.setFigureIcon(jIcon);
 
 % Load cloud icon
@@ -68,9 +68,9 @@ set(handles.btn_icon, 'CData', btn_im);
 
 % Base Handles
 handles.revision = 'HEAD';
-handles.credentialsNeeded = varargin{1};
-handles.credentialsNeeded = handles.credentialsNeeded{1};
-handles.url = varargin{2};
+handles.url = varargin{1};
+handles.url = handles.url{1};
+handles.done = false;
 
 % Choose default command line output for updateDialog
 handles.output = hObject;
@@ -91,6 +91,7 @@ function varargout = updateDialog_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+varargout{2} = handles.done;
 
 % The figure can be deleted now
 delete(hObject);
@@ -190,21 +191,22 @@ try
         handles.revision = str;
     end
 
-    % Check if Password/login is needed
-    [username,password] = readEncryptedPassword(handles);
-
     % Get Working Copy Folder
     rps = fullfile(handles.homeDir, 'rps');
     blocks = fullfile(handles.homeDir, 'blocks');
     help = fullfile(handles.homeDir, 'help');
     
     % Run SVN Commands
-    updateSVN(rps, username, password, 'HEAD');
-    updateSVN(blocks, username, password, handles.revision);
-    updateSVN(help, username, password, handles.revision);
+    svnAbstraction('update',rps, 'HEAD');
+    svnAbstraction('update',blocks,handles.revision);
+    svnAbstraction('update',help,handles.revision);
     
     % Reset
     hideLoadingAnimation(d);
+    
+    % Outpud
+    handles.done = true;
+    guidata(hObject, handles);
     
     % Close Fig
     close(gcf);

@@ -16,6 +16,11 @@ errorList{end+1}.nr = 'E205007';
 errorList{end}.text = 'Could not use external editor to fetch log message. Missing log message!';
 errorList{end+1}.nr = 'E020024';
 errorList{end}.text = 'Fehler beim Ermitteln der Groﬂ-/Kleinschreibung... !';
+errorList{end+1}.nr = 'E175011';
+errorList{end}.text = 'Unable to connect to a repository at URL.';
+errorList{end+1}.nr = 'E215004';
+errorList{end}.text = 'Authentication is wrong or unable to connect to a repository given URL.';
+
 
 % Check for Errors
 for i=1:1:length(errorList)

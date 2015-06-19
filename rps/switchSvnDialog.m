@@ -22,7 +22,7 @@ function varargout = switchSvnDialog(varargin)
 
 % Edit the above text to modify the response to help switchSvnDialog
 
-% Last Modified by GUIDE v2.5 02-Jun-2015 01:21:19
+% Last Modified by GUIDE v2.5 13-Jun-2015 21:05:02
 %               by Daniel Schneider(EK-704), 01.06.2015, Created Switch Dialog
 %               by Daniel Schneider(EK-704), 08.06.2015, Bugfix because subfolder switch command not possible
 %               by ...
@@ -58,6 +58,15 @@ function switchSvnDialog_OpeningFcn(hObject, eventdata, handles, varargin)
 % Home Dir
 handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 
+% Show loading animation
+d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar('Loading Branches/Tags', []);
+d.setValue(0.25);                        % default = 0
+d.setProgressStatusLabel('Please wait, loading branches/tags...');  % default = 'Please Wait'
+d.setSpinnerVisible(false);               % default = true
+d.setCircularProgressBar(true);         % default = false  (true means an indeterminate (looping) progress bar)
+d.setCancelButtonVisible(false);          % default = true
+d.setVisible(true);                      % default = false
+
 % Get Command Line Arguments and save to handles
 % Info: {1} = Repository URL, {2} = Local Revision, {3} = Local Folder, {4}
 % = passwordNeeded
@@ -69,39 +78,32 @@ if isnumeric(varargin{2})
 else
     handles.localRevision = str2num(varargin{2});
 end
-if isnumeric(varargin{4})
-    handles.passwordNeeded = varargin{4};
-else
-    handles.passwordNeeded = str2num(varargin{4});
-end
 
-% Check if Password/login is needed
-if handles.passwordNeeded==1
-    % login details
-    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-        % Available
-        [username,password] = decryptCredentials();
-    else
-        % Password Missing
-        errordlg('Missing SVN Login/Password. Please save your login informations.', 'Missing SVN Login Information!');
-        error('Missing SVN Login/Password!');
-    end
-else
-   % Not needed
-   username = '';
-   password = '';
-end
+% Load svn icon
+iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
+btn_im = imread(fullfile(iconsFolder, 'svn.png'));
+set(handles.btn_icon, 'CData', btn_im);
+
+% Custom GUI Icon
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+jframe=get(hObject,'javaframe');
+jIcon=javax.swing.ImageIcon(fullfile(iconsFolder, 'BMW-neg_act_replace_18.png'));
+jframe.setFigureIcon(jIcon);
 
 % Initialize Branch/Tag Popupmenu Items
-[branches, info] = getRepositoryList(fullfile(handles.repoUrl,'branches'),username,password);
+[ret] = svnAbstraction('subfolderList',fullfile(handles.repoUrl,'branches'));
+branches = ret.folderList;
+info = ret.info;
 if isequal(info,-1)
     % Error
-    error('Something went wrong during reading branches...! (Connection, Login, ...)');
+    uiwait(errordlg('Could not retrieve repository branches!', 'Error Retrieving Branches'));
 end
-[tags, info] = getRepositoryList(fullfile(handles.repoUrl,'tags'),username,password);
+[ret] = svnAbstraction('subfolderList',fullfile(handles.repoUrl,'tags'));
+tags = ret.folderList;
+info = ret.info;
 if isequal(info,-1)
     % Error
-    error('Something went wrong during reading tags...! (Conncetion, Login, ...)');
+    uiwait(errordlg('Could not retrieve repository tags!', 'Error Retrieving Tags'));
 end
 
 % Set Strings for Popupmenus
@@ -136,6 +138,9 @@ if ~isempty(get(handles.popup_branch, 'String'))
 else
     handles.branch = '';
 end
+
+% Hide Loading animation
+d.setVisible(false);                      % default = false
 
 % Choose default command line output for switchSvnDialog
 handles.output = hObject;
@@ -279,7 +284,7 @@ function btn_ok_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % Show Loading Animation
-d = showLoadingAnimation('Creating Branch/Tag', 'Please wait...');
+d = showLoadingAnimation('Switching...', 'Please wait...');
 try
     % Check if Input Paramaters are all availabe
     if isempty(handles.revision)
@@ -314,23 +319,6 @@ try
             handles.revision = num2str(handles.revision);
     end
     
-    % Check for SVN-Password
-    if handles.passwordNeeded == true
-        % Look for credentials
-        if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-            % Available
-            [username,password] = decryptCredentials();
-        else
-            % Password Missing
-            uiwait(errordlg('Missing SVN Login/Password. Please save your login details.', 'Missing Login Information!'));
-            error('Missing SVN Login/Password!');
-        end
-    else
-        % not needed
-        username = '';
-        password = '';
-    end
-    
     % Get local URL/Source
     fromPath = fullfile(handles.homeDir);
 
@@ -340,22 +328,22 @@ try
         % ###Bugfix: removed svn switch from subfolders, 08.06.2015, Daniel Schneider
         toPath = fullfile(handles.repoUrl, 'tags', handles.tag);
         handles.newFolder = fullfile('tags',handles.tag);
-        [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'), username, password);
-        [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'), username, password);
+        [info] = svnAbstraction('switch',handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'));
+        [info] = svnAbstraction('switch',handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'));
     elseif handles.isBranch
         % Switch to Branch
         % ###Bugfix: removed svn switch from subfolders, 08.06.2015, Daniel Schneider
         toPath = fullfile(handles.repoUrl, 'branches', handles.branch);
         handles.newFolder = fullfile('branches',handles.branch);
-        [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'), username, password);
-        [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'), username, password);
+        [info] = svnAbstraction('switch',handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'));
+        [info] = svnAbstraction('switch',handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'));
     elseif handles.isTrunk
         % Switch to Trunk
         % ###Bugfix: removed svn switch from subfolders, 08.06.2015, Daniel Schneider
         toPath = fullfile(handles.repoUrl, 'trunk');
         handles.newFolder = 'trunk';
-        [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'), username, password);
-        [info] = switchWorkingCopySVN(handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'), username, password);
+        [info] = svnAbstraction('switch',handles.revision, fullfile(toPath, 'blocks'), fullfile(fromPath, 'blocks'));
+        [info] = svnAbstraction('switch',handles.revision, fullfile(toPath, 'help'), fullfile(fromPath, 'help'));
     end
     if isequal(info,-1)
         error('Error creating Branch/Tag. Something went wrong (Conncetion, Login, ...).');
@@ -596,3 +584,10 @@ handles.isTag = false;
 handles.isBranch = false;
 handles.isTrunk = true;
 guidata(hObject, handles);
+
+
+% --- Executes on button press in btn_icon.
+function btn_icon_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_icon (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

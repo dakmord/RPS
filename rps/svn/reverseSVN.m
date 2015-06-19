@@ -1,13 +1,8 @@
-function [ret] = updateSVN(info,workingCopy,revision)
+function [ret] = reverseSVN(info,workingCopy)
 %Update current folder..
-command='update';
+command='revert';
 custom='--no-auth-cache';
-if ischar(revision)
-    flags=sprintf('-r %s', revision);
-elseif isnumeric(revision)
-    flags=sprintf('-r %i', revision);
-end
-
+flags ='-R';
 
 if info.credentialsNeeded
     cmd=sprintf('%s %s %s %s %s --username %s --password %s %s', info.svnExe, command, flags, workingCopy, custom,...

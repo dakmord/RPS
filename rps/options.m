@@ -22,7 +22,7 @@ function varargout = options(varargin)
 
 % Edit the above text to modify the response to help options
 
-% Last Modified by GUIDE v2.5 01-Jun-2015 20:57:45
+% Last Modified by GUIDE v2.5 11-Jun-2015 09:43:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -111,6 +111,21 @@ function options_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to options (see VARARGIN)
 
+% Create Java Password Edit Field
+handles.java_Password = javax.swing.JPasswordField();
+[handles.java_Password, handles.edit_password] = javacomponent(handles.java_Password, [99 138 103 22], handles.figure1);
+handles.java_Password.setFocusable(true);
+
+% Create Java Proxy Password Edit Field
+handles.java_proxyPassword = javax.swing.JPasswordField();
+[handles.java_proxyPassword, handles.edit_proxyPassword] = javacomponent(handles.java_proxyPassword, [337 108 116 22], handles.figure1);
+handles.java_proxyPassword.setFocusable(true);
+
+% Set Edit Password Handles
+set(handles.edit_password, 'Parent', handles.figure1, 'Tag', 'edit_password', 'Units', 'Pixels','Position',[99 138 103 22]);
+set(handles.edit_proxyPassword, 'Parent', handles.figure1, 'Tag', 'edit_proxyPassword', 'Units', 'Pixels','Position',[337 108 116 22]);
+drawnow;    % This drawnow is required to allow the focus to work
+
 % Save rps home path
 handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
 
@@ -125,42 +140,74 @@ pref_icon = imread(fullfile(handles.homeDir,'rps','etc','icons_18', 'preferences
 set(handles.btn_icon, 'CData', pref_icon);
 
 % Get old userconfig values ...
-[status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
-    repoFolder, revision] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
+[status ,config] = getUserconfigValues();
 
 % create basic handles
-handles.updateInterval = updateInterval;
-handles.autoUpdate = autoUpdate;
-handles.customUrl = customUrl;
-handles.credentialsNeeded = credentialsNeeded;
-handles.url = url;
-handles.repoFolder = repoFolder;
-handles.revision = revision;
+handles.updateInterval = config.updateInterval;
+handles.autoUpdate = config.autoUpdate;
+handles.customUrl = config.customUrl;
+handles.credentialsSaved = config.credentialsSaved;
+handles.credentialsNeeded = config.credentialsNeeded;
+handles.url = config.url;
+handles.repoFolder = config.repoFolder;
+handles.revision = config.revision;
 handles.switchRepository = false;
+handles.proxyAddress = config.proxyAddress;
+handles.proxyRequired = config.proxyRequired;
+handles.proxyPort = config.proxyPort;
+handles.proxyExceptions = config.proxyExceptions;
+handles.maxLogEntries =  config.maxLogEntries;
+
+% Set Max Log Entries
+set(handles.edit_maxLogEntries, 'String', num2str(handles.maxLogEntries));
+
+% Set Proxy GUI Components
+set(handles.edit_proxyAddress, 'String', handles.proxyAddress);
+set(handles.edit_proxyPort, 'String', num2str(handles.proxyPort));
+set(handles.edit_proxyExceptions, 'String', handles.proxyExceptions);
+set(handles.checkbox_proxyRequired, 'Value', handles.proxyRequired);
+set(handles.edit_proxyUsername, 'String', '');
+
+% Check if Proxy Required
+if handles.proxyRequired
+    % Enable fields
+    set(handles.edit_proxyUsername, 'Enable', 'on');
+    set(handles.edit_proxyAddress, 'Enable', 'on');
+    set(handles.edit_proxyPort, 'Enable', 'on');
+    set(handles.edit_proxyExceptions, 'Enable', 'on');
+    handles.java_proxyPassword.Enable = 1;
+else
+    % Disable fields
+    set(handles.edit_proxyUsername, 'Enable', 'off');
+    set(handles.edit_proxyAddress, 'Enable', 'off');
+    set(handles.edit_proxyPort, 'Enable', 'off');
+    set(handles.edit_proxyExceptions, 'Enable', 'off');
+    handles.java_proxyPassword.Enable = 0;
+end
 
 % fill in gui components
-set(handles.customUrl_cb, 'Value', customUrl);
-set(handles.credentials_cb, 'Value', credentialsNeeded);
-set(handles.checkUpdates_cb, 'Value', autoUpdate);
+set(handles.customUrl_cb, 'Value', config.customUrl);
+set(handles.credentials_cb, 'Value', config.credentialsSaved);
+set(handles.checkUpdates_cb, 'Value', config.autoUpdate);
 if handles.autoUpdate==1
     set(handles.updateInterval_edit,'Enable','on')
 else
     set(handles.updateInterval_edit,'Enable','off')
 end
-set(handles.updateInterval_edit, 'String', updateInterval);
-if customUrl==true
+set(handles.updateInterval_edit, 'String', config.updateInterval);
+if config.customUrl==true
     set(handles.customUrl_edit, 'Enable', 'on', 'String', url);
     set(handles.popupmenu_url, 'Enable', 'off');
 else
     set(handles.customUrl_edit, 'Enable', 'off', 'String', 'https://svn-test.repo');
     set(handles.popupmenu_url, 'Enable', 'on');
 end
-
-% Check if Credentials already saved ...
-if exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file')==2
-    set(handles.text_credentials, 'String', 'Credentials available...', 'ForegroundColor', [0 0.5 0]);
+if config.credentialsSaved
+    set(handles.edit_username, 'Enable','on');
+    handles.java_Password.Enable = 1;
 else
-    set(handles.text_credentials, 'String', 'No Credentials availabe...', 'ForegroundColor', 'red');
+    set(handles.edit_username, 'Enable','off');
+    handles.java_Password.Enable = 0;
 end
 
 % Get current url's from xml-file..
@@ -176,9 +223,8 @@ if y > 0
             % Get Value
             userconfigItem = urls;
         end
-        if strcmp(xml.urls.url{1,urls}.Attributes.credentials, '1') || strcmp(xml.urls.url{1,urls}.Attributes.isPublic, '0')
+        if strcmp(xml.urls.url{1,urls}.Attributes.isPublic, '0')
             % Private
-            
             popup_list{end+1} = [xml.urls.url{1,urls}.Text ' (PRIVATE)' ];
         else
            % Public
@@ -195,7 +241,19 @@ if length(popup_list)>0
     set(handles.popupmenu_url, 'String', popup_list, 'Value', userconfigItem);
 end
 
-
+% Get SVN&Proxy Login/Passwords
+if isequal(exist(fullfile(handles.homeDir,'auth.mat.aes'),'file'),2)
+    % load credentials
+    [username,password] = decryptCredentials('credentials');
+    set(handles.edit_username, 'String', username);
+    handles.java_Password.Text = password;
+end
+if isequal(exist(fullfile(handles.homeDir,'proxy.mat.aes'),'file'),2)
+    % load proxy login/pass
+    [username,password] = decryptCredentials('credentials');
+    set(handles.edit_proxyUsername, 'String', username);
+    handles.java_proxyPassword.Text = password;
+end
 
 % Choose default command line output for options
 handles.output = hObject;
@@ -248,16 +306,23 @@ function btn_save_Callback(hObject, eventdata, handles)
 % hObject    handle to btn_save (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% Get previous userconfig data if available
+
+% save prefgroup
+group = 'RPSuserconfig';
+
 d = showLoadingAnimation('Saving preferences...', 'Checking URLs...');
 try
     % Get actualized data
     handles.updateInterval = str2num(get(handles.updateInterval_edit,'String'));
     handles.autoUpdate = get(handles.checkUpdates_cb,'Value');
     handles.customUrl = get(handles.customUrl_cb,'Value');
-    handles.credentialsNeeded = get(handles.credentials_cb,'Value');
+    handles.credentialsSaved = get(handles.credentials_cb,'Value');
     handles.simulinkPereferences = false;
-
+    handles.proxyAddress = get(handles.edit_proxyAddress, 'String');
+    handles.proxyPort = str2num(get(handles.edit_proxyPort, 'String'));
+    handles.proxyExceptions = get(handles.edit_proxyExceptions, 'String');
+    handles.proxyRequired = get(handles.checkbox_proxyRequired, 'Value');
+    handles.maxLogEntries = str2num(get(handles.edit_maxLogEntries, 'String'));
 
     % Check if Repo URL is valid
     if handles.customUrl==1
@@ -266,132 +331,168 @@ try
     else
         % Popupmenu URL
         handles.url = getCurrentPopupString(handles.popupmenu_url);
-        % Check if Public/Private
-        if ~isempty(strfind(handles.url, '(PUBLIC)')) && get(handles.credentials_cb,'Value')==0
-            % Public
+
+        % Check if Private/Public
+        if strfind(handles.url,'(PUBLIC)')
+            % no creds needed
             handles.credentialsNeeded = false;
-        else
-            % Private
+        elseif strfind(handles.url,'(PRIVATE)')
+            % creds needed
             handles.credentialsNeeded = true;
         end
+            
         % Filter private/public out
         handles.url = strsplit(handles.url, ' (P');
         handles.url = handles.url{1};
     end
 
-    d.setProgressStatusLabel('Verifying repo...');
     if ~isempty(strfind(handles.url,'trunk')) || ...
             ~isempty(strfind(handles.url,'tags')) || ...
             ~isempty(strfind(handles.url,'branches'))
         % Error wrong url given
-        errordlg('Please delete subfolders in URL (e.g. trunk,tags,branches).','Wrong URL');
+        uiwait(errordlg('Please delete subfolders in URL (e.g. trunk,tags,branches).','Wrong URL'));
         return;
     end
-    if checkSvnUrl(handles.url)==-1
-        % Wrong URL, something wrong
-        errordlg('Cannot connect to given SVN-Repository URL. Please check URL.','Wrong URL');
-        return;
+    
+    % Save Credentials
+    if get(handles.credentials_cb, 'Value')==1
+        encryptCredentials(get(handles.edit_username,'String'),handles.java_Password.Text, 'credentials');
+    end
+    
+    % Save Proxy Login/pass
+    if get(handles.checkbox_proxyRequired, 'Value')==1
+        encryptCredentials(get(handles.edit_proxyUsername,'String'),handles.java_proxyPassword.Text, 'proxy');
     end
 
-    d.setProgressStatusLabel('Checking local working copy...');
     % Check for local working copy revision and repository folder (trunk, tags/.., branches/..
-    homeDir = getpref('RapidPrototypingSystem','HomeDir');
-    [revision, folder, repoHome]=checkLocalWorkingCopy(fullfile(homeDir, 'rps'));
-    handles.revision = revision;
-    handles.repoFolder = folder;
+    d.setProgressStatusLabel('Checking local working copy...');
+    
+    % Check if Connected
+    if ispref('RapidPrototypingSystem', 'SVNConnected')
+        if getpref('RapidPrototypingSystem', 'SVNConnected')
+            ret = svnAbstraction('wcInfo', fullfile(handles.homeDir, 'rps'));
+            handles.revision = ret.revision;
+            handles.repoFolder = ret.folder;
 
-    d.setProgressStatusLabel('Validating credentials...');
-    % Check if credentials are correct
-    if handles.credentialsNeeded == true
-        % needed, check if correct
-        if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-            % Available
-            [username,password] = decryptCredentials();
-        else
-            % Password Missing
-            btn_saveCredentials_Callback(hObject, eventdata, handles);
-            error('Missing SVN Login/Password! Save credentials and press "Save" button again.');
+            % Save to Preferences
+            setpref(group,'folder',handles.repoFolder);
+            setpref(group,'revision',handles.revision);
+            
+            % Check if url is the same repo as local working copy
+            if isempty(strfind(handles.url,ret.repoHomeUrl))
+                % Another Repo URL, need to checkout/switch to new url/trunk...
+                choice = questdlg('You local repository differs from the given URL. Do you really want to switch to another repository?',...
+                    'Switching Repository?', 'Yes','No','No');
+                drawnow; pause(0.1);
+                switch choice
+                    case 'Yes'
+                        % DO nothing
+                        handles.switchRepository = true;
+                    case 'No'
+                        % NO
+                        hideLoadingAnimation(d); 
+                        return;
+                end
+            else
+                % Same Repo, nothing to do right now.
+                handles.switchRepository = false;
+            end
         end
-        % Check Password
-        if credentialsValiditySVN(handles.url, username, password)==1
-            % Could be correct
-        else
-            % Wrong
-            errordlg('SVN Login/Password seems to be wrong. Please re-enter your login details!','Wrong Login/Password!');
-            error('SVN Login/Password seems to be wrong. Please re-enter your login details!');
-        end
-    else
-        % No Password/Login needed
-        password='';
-        username='';
     end
 
-    d.setProgressStatusLabel('Validating Repository...');
-    % Check if url is the same repo as local working copy
-    if isempty(strfind(handles.url,repoHome))
-        % Another Repo URL, need to checkout/switch to new url/trunk...
-        % First check if new repo/trunk contains dir (rps,blocks,help)
-        if ~checkFolderExistence(fullfile(repoHome,'trunk', 'rps'))
-            errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
-            return;
+    % Switch Repository Preconfigurations
+    if handles.switchRepository
+        % Save old values before switching
+        old.proxyRequired = getpref(group,'proxyRequired');
+        old.proxyAddress = getpref(group,'proxyAddress');
+        old.proxyPort = getpref(group,'proxyPort');
+        old.proxyExceptions = getpref(group,'proxyExceptions');
+        old.url = getpref(group,'url');
+        old.customUrl = getpref(group,'customUrl');
+        old.credentialsSaved = getpref(group,'credentialsSaved');
+        old.credentialsNeeded = getpref(group,'credentialsNeeded');
+        % Preserve old auth file if available
+        if isequal(exist(fullfile(handles.homeDir,'auth.mat.aes'),'file'),2)
+           movefile(fullfile(handles.homeDir,'auth.mat.aes'),fullfile(handles.homeDir,'_auth.mat.aes'),'f');
         end
-        if ~checkFolderExistence(fullfile(repoHome,'trunk', 'blocks'))
-            errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
-            return;
+        % Preserve old proxy file if availabe
+        if isequal(exist(fullfile(handles.homeDir,'proxy.mat.aes'),'file'),2)
+           movefile(fullfile(handles.homeDir,'proxy.mat.aes'),fullfile(handles.homeDir,'_proxy.mat.aes'),'f');
         end
-        if ~checkFolderExistence(fullfile(repoHome,'trunk', 'help'))
-            errordlg('Given Repository URL seems not configured/prepared for using it with the RPS.','Wrong Repo URL?');
-            return;
-        end
-
-        choice = questdlg('You local repository differs from the given URL. Do you really want to switch to another repository?',...
-            'Switching Repository?', 'Yes','No','No');
-        switch choice
-            case 'Yes'
-                
-            case 'No'
-                % NO
-                return;
-            otherwise
-                % NO
-                return;
-        end
-        %TODO: Switch/Relocate/Delete or Checkout (rps,blocks,help)
-        %       Delete rps folder while still using options.fig??????
-        %
-        % Call Function 
-        switchRepo = true;
-        handles.switchRepository = true;
-    else
-        % Same Repo, nothing to do right now.
-        switchRepo = false;
-        handles.switchRepository = false;
+        old.SVNCredentialsValidated = getpref('RapidPrototypingSystem', 'SVNCredentialsValidated');
+        old.SVNServerValidated = getpref('RapidPrototypingSystem', 'SVNServerValidated');
+        setpref('RapidPrototypingSystem', 'SVNCredentialsValidated',false);
+        setpref('RapidPrototypingSystem', 'SVNServerValidated',false);
     end
-
+    
+    % Save to Userconfig
+    d.setProgressStatusLabel('Creating userconfig...');
+    setpref(group,'url',handles.url);
+    setpref(group,'updateInterval',handles.updateInterval);
+    setpref(group,'autoUpdate',handles.autoUpdate);
+    setpref(group,'folder',handles.repoFolder);
+    setpref(group,'revision',handles.revision);
+    setpref(group,'customUrl',handles.customUrl);
+    setpref(group,'credentialsSaved',handles.credentialsSaved);
+    setpref(group,'credentialsNeeded',handles.credentialsNeeded);
+    setpref(group,'simulinkDefaultPreferences',handles.simulinkPereferences);
+    setpref(group,'proxyRequired',handles.proxyRequired);
+    setpref(group,'proxyAddress',handles.proxyAddress);
+    setpref(group,'proxyPort',handles.proxyPort);
+    setpref(group,'proxyExceptions',handles.proxyExceptions);
+    setpref(group,'maxLogEntries', handles.maxLogEntries);
+    
+    if handles.switchRepository
+        d.setProgressStatusLabel('Please wait, switching repository...');
+        if svnAbstraction('switchRepo')==-1
+            % Reverse changes
+            d.setProgressStatusLabel('Switching failed, reverting changes...');
+            % Revert prefs
+            setpref(group,'url',old.url);
+            setpref(group,'customUrl',old.customUrl);
+            setpref(group,'credentialsSaved',old.credentialsSaved);
+            setpref(group,'credentialsNeeded',old.credentialsNeeded);
+            setpref(group,'proxyRequired',old.proxyRequired);
+            setpref(group,'proxyAddress',old.proxyAddress);
+            setpref(group,'proxyPort',old.proxyPort);
+            setpref(group,'proxyExceptions',old.proxyExceptions);
+            setpref('RapidPrototypingSystem', 'SVNCredentialsValidated',old.SVNCredentialsValidated);
+            setpref('RapidPrototypingSystem', 'SVNServerValidated',old.SVNServerValidated);
+            % Revert old auth & proxy file
+            if isequal(exist(fullfile(handles.homeDir,'_auth.mat.aes'),'file'),2)
+               movefile(fullfile(handles.homeDir,'_auth.mat.aes'),fullfile(handles.homeDir,'auth.mat.aes'),'f');
+            end
+            if isequal(exist(fullfile(handles.homeDir,'_proxy.mat.aes'),'file'),2)
+               movefile(fullfile(handles.homeDir,'_proxy.mat.aes'),fullfile(handles.homeDir,'proxy.mat.aes'),'f');
+            end
+            % Do not save and stop switch process
+            hideLoadingAnimation(d);
+            return;
+        end
+    end
+    
+    % Remove temp proxy/auth files
+    if isequal(exist(fullfile(handles.homeDir,'_auth.mat.aes'),'file'),2)
+        delete(fullfile(handles.homeDir,'_auth.mat.aes'));
+    end
+    if isequal(exist(fullfile(handles.homeDir,'_proxy.mat.aes'),'file'),2)
+        delete(fullfile(handles.homeDir,'_proxy.mat.aes'));
+    end
+    
     % Save Handles
     guidata(hObject, handles);
     
-    d.setProgressStatusLabel('Creating userconfig...');
-    
-    % Generate XML
-    createUserconfigXML(hObject, handles)
-
     hideLoadingAnimation(d);
-    
     disp(' ### DONE saving preferences!');
-    
-    % Switch Repository if needed
-    if switchRepo==true
-        switchRepository(handles.url,username,password);
-    end
-    
+
     % Close Options Menu
     close(gcf);
     
 catch err
-   %hideLoadingAnimation(d); 
+   hideLoadingAnimation(d); 
    rethrow(err);
 end
+
 
 function str = getCurrentPopupString(hh)
 %# getCurrentPopupString returns the currently selected string in the popupmenu with handle hh
@@ -436,22 +537,6 @@ function popupmenu_url_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on button press in btn_saveCredentials.
-function btn_saveCredentials_Callback(hObject, eventdata, handles)
-% hObject    handle to btn_saveCredentials (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-[Password, UserName] = passwordEntryDialog('enterUserName', true,'ValidatePassword', true,'CheckPasswordLength',false,'WindowName','SVN Login/Password');
-if Password >0
-    encryptCredentials(UserName, Password);
-end
-if exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file')==2
-    set(handles.text_credentials, 'String', 'Credentials available...', 'ForegroundColor', [0 0.5 0]);
-else
-    set(handles.text_credentials, 'String', 'No Credentials stored...', 'ForegroundColor', 'red');
 end
 
 
@@ -521,11 +606,11 @@ function credentials_cb_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of credentials_cb
 if get(handles.credentials_cb,'Value')==1
-    set(handles.btn_saveCredentials,'Enable', 'on');
-    handles.credentialsNeeded = true;
+    set(handles.edit_username,'Enable', 'on');
+    handles.java_Password.Enable = 1;
 else
-    set(handles.btn_saveCredentials,'Enable', 'off');
-    handles.credentialsNeeded = false;
+    set(handles.edit_username,'Enable', 'off');
+    handles.java_Password.Enable = 0;
 end
 
 
@@ -579,3 +664,187 @@ function btn_icon_Callback(hObject, eventdata, handles)
 % hObject    handle to btn_icon (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in checkbox_proxyRequired.
+function checkbox_proxyRequired_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox_proxyRequired (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox_proxyRequired
+if get(handles.checkbox_proxyRequired, 'Value')
+    % Enable fields
+    set(handles.edit_proxyUsername, 'Enable', 'on');
+    set(handles.edit_proxyAddress, 'Enable', 'on');
+    set(handles.edit_proxyPort, 'Enable', 'on');
+    set(handles.edit_proxyExceptions, 'Enable', 'on');
+    handles.java_proxyPassword.Enable = 1;
+else
+    % Disable fields
+    set(handles.edit_proxyUsername, 'Enable', 'off');
+    set(handles.edit_proxyAddress, 'Enable', 'off');
+    set(handles.edit_proxyPort, 'Enable', 'off');
+    set(handles.edit_proxyExceptions, 'Enable', 'off');
+    handles.java_proxyPassword.Enable = 0;
+end
+
+
+function edit_username_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_username (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_username as text
+%        str2double(get(hObject,'String')) returns contents of edit_username as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_username_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_username (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_proxyAddress_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_proxyAddress (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_proxyAddress as text
+%        str2double(get(hObject,'String')) returns contents of edit_proxyAddress as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_proxyAddress_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_proxyAddress (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_proxyUsername_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_proxyUsername (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_proxyUsername as text
+%        str2double(get(hObject,'String')) returns contents of edit_proxyUsername as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_proxyUsername_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_proxyUsername (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_proxyPassword_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_proxyPassword (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_proxyPassword as text
+%        str2double(get(hObject,'String')) returns contents of edit_proxyPassword as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_proxyPassword_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_proxyPassword (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_proxyExceptions_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_proxyExceptions (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_proxyExceptions as text
+%        str2double(get(hObject,'String')) returns contents of edit_proxyExceptions as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_proxyExceptions_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_proxyExceptions (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_proxyPort_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_proxyPort (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_proxyPort as text
+%        str2double(get(hObject,'String')) returns contents of edit_proxyPort as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_proxyPort_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_proxyPort (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_maxLogEntries_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_maxLogEntries (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_maxLogEntries as text
+%        str2double(get(hObject,'String')) returns contents of edit_maxLogEntries as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_maxLogEntries_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_maxLogEntries (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

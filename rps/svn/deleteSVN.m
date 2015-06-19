@@ -1,8 +1,4 @@
-function [info] = deleteSVN(deleteTarget, logMessage, username, password)
-% Get Parent Dir _> ...\Rapid-Prototyping-System\
-svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
-svnExe = fullfile(svnBin,'svn.exe');
-
+function [ret] = deleteSVN(info,deleteTarget, logMessage)
 % Check if string
 if ~ischar(logMessage)
     logMessage = num2str(logMessage);
@@ -14,23 +10,24 @@ deleteTarget = strrep(deleteTarget,'\', '/');
 %Update current folder..
 command='delete';
 log = sprintf('--message "%s"', logMessage);
+authStore = '--no-auth-cache';
 
-if isempty(username)
-    cmd=sprintf('%s %s %s %s', svnExe, command, deleteTarget, log);
+if info.credentialsNeeded
+    cmd=sprintf('%s %s %s %s --username %s --password %s %s %s', info.svnExe, command, deleteTarget, log, info.username, info.password, authStore, info.proxy);
 else
-    cmd=sprintf('%s %s %s %s --username %s --password %s', svnExe, command, deleteTarget, log, username, password);
+    cmd=sprintf('%s %s %s %s %s %s', info.svnExe, command, deleteTarget, log, authStore, info.proxy);
 end
 [status, cmdout] = dos(cmd);
 
 % Check for errors during svn command
-[info, message] = handleErrorsSVN(status,cmdout);
-if ~isempty(info)
+[err, message] = handleErrorsSVN(status,cmdout);
+if ~isempty(err)
    % Error
-   uiwait(errordlg(['Error: ' info ', ' message],'SVN Error!'));
-   info=-1;
+   uiwait(errordlg(['Error: ' err ', ' message],'SVN Error!'));
+   ret=-1;
    return;
 end
 
-info = 1;
+ret = 1;
 
 end

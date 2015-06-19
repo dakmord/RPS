@@ -1,40 +1,43 @@
-function [log, files] = getRepositoryLog(repository,folder,maxLogEntries,username,password)
-%Define important Paths which will be needed ...
-svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
-svnExe = fullfile(svnBin,'svn.exe');
-
+function [log, files] = getRepositoryLog(info)
 %Check size of Files which will be transfered..
 command='log';
-custom=['-l ' num2str(maxLogEntries) ' -v --xml'];
-repUrl = fullfile(repository, folder);
+if info.maxLogEntries <= 1
+    info.maxLogEntries = 2;
+end
+custom=['-l ' num2str(info.maxLogEntries) ' -v --xml'];
+authStore = '--no-auth-cache';
+repUrl = fullfile(info.url, info.repoFolder);
 repUrl = strrep(repUrl,'\','/');
 
-if strcmp(username, '')
-    cmd=sprintf('%s %s %s %s', svnExe, command, repUrl, custom);
+if isempty(info.username)
+    cmd=sprintf('%s %s %s %s %s %s', info.svnExe, command, repUrl, custom,authStore,info.proxy);
 else
-    cmd=sprintf('%s %s %s %s --username %s --password %s', svnExe, command, repUrl, custom,username,password);
+    cmd=sprintf('%s %s %s %s --username %s --password %s %s %s', info.svnExe, command, repUrl, custom,info.username,info.password,authStore,info.proxy);
 end
 
 [status, cmdout] = dos(cmd);
 % Check for errors during svn command
-[info, message] = handleErrorsSVN(status,cmdout);
-if ~isempty(info)
+[err, message] = handleErrorsSVN(status,cmdout);
+if ~isempty(err)
    % Error
-   uiwait(errordlg(['Error: ' info ', ' message],'SVN Error!'));
+   uiwait(errordlg(['Error: ' err ', ' message],'SVN Error!'));
    log={};
-   log(1,:) = {'','',info,message};
+   log(1,:) = {'','',err,message};
    files={};
    return;
 end
 
-fid = fopen(fullfile(pwd, 'cmdout.xml'), 'wt');
+% Get HomeDir for saving tmp file cmdout.xml
+homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
+fid = fopen(fullfile(homeDir, 'cmdout.xml'), 'wt');
 fprintf(fid,'%s',cmdout);
 fclose(fid);
 
-if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
+if isequal(exist(fullfile(homeDir,'cmdout.xml'),'file'),2)
 
-    xmlOutput = xml2struct(fullfile(pwd,'cmdout.xml'));
-    delete('cmdout.xml');
+    xmlOutput = xml2struct(fullfile(homeDir,'cmdout.xml'));
+    delete(fullfile(homeDir,'cmdout.xml'));
 
     % Create Log-Array
     log = {};

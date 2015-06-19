@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urls>
-    <url isPublic="0" credentials="1">https://asc-repo.bmwgroup.net/svn/asc025/Projects/RapidPrototypingSystem/</url>
-	<url isPublic="1" credentials="0">https://github.com/dakmord/RPS/</url>
-    <supportPkg isPublic="1" baseVersion="0.8">https://github.com/dakmord/RPS/releases/download/</supportPkg>
+    <url isPublic="0">https://asc-repo.bmwgroup.net/svn/asc025/Projects/RapidPrototypingSystem/</url>
+	<url isPublic="1">https://github.com/dakmord/RPS/</url>
+	<url isPublic="1">file:///C:/Users/q365198/SVN_WCs/LocalServer</url>
 </urls>

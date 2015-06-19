@@ -1,23 +1,20 @@
-function [revision, folder, repoHomeUrl] = checkLocalWorkingCopy(workingCopyDir)
-%Define important Paths which will be needed ...
-svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
-svnExe = fullfile(svnBin,'svn.exe');
-
+function [ret] = checkLocalWorkingCopy(info, workingCopyDir)
 %Check size of Files which will be transfered..
 command='info';
 
-cmd=sprintf('%s %s %s --xml', svnExe, command, workingCopyDir);
+cmd=sprintf('%s %s %s --xml %s', info.svnExe, command, workingCopyDir);
 
 [status, cmdout] = dos(cmd);
-fid = fopen(fullfile(pwd, 'cmdout.xml'), 'wt');
+
+fid = fopen(fullfile(info.homeDir, 'cmdout.xml'), 'wt');
 fprintf(fid,'%s',cmdout);
 fclose(fid);
 
-if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
+if isequal(exist(fullfile(info.homeDir,'cmdout.xml'),'file'),2)
     try
-        xmlOutput = xml2struct(fullfile(pwd,'cmdout.xml'));
-        revision = str2num(xmlOutput.info.entry.Attributes.revision);
-        delete('cmdout.xml');
+        xmlOutput = xml2struct(fullfile(info.homeDir,'cmdout.xml'));
+        ret.revision = str2num(xmlOutput.info.entry.Attributes.revision);
+        delete(fullfile(info.homeDir,'cmdout.xml'));
     catch
        error('System kann den angegebenen Pfad nicht finden svn.exe info <workingCopy>') ;
     end
@@ -34,7 +31,7 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
     completeRepoUrl = xmlOutput.info.entry.url.Text;
     if ~isempty(strfind(completeRepoUrl,'trunk'))
         % in trunk
-        folder = 'trunk';
+        ret.folder = 'trunk';
     elseif ~isempty(strfind(completeRepoUrl,'branches'))
         % in branches
         % find out subfolder
@@ -45,10 +42,10 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
             branchIndex = branchIndex(length(branchIndex));
         end
         if length(indexes)==1
-            folder = completeRepoUrl(branchIndex:(indexes-2));
+            ret.folder = completeRepoUrl(branchIndex:(indexes-2));
         else
            % more found so use last one
-           folder = completeRepoUrl(branchIndex:(indexes(length(indexes))-2));
+           ret.folder = completeRepoUrl(branchIndex:(indexes(length(indexes))-2));
         end
     elseif ~isempty(strfind(completeRepoUrl,'tags'))
         % i tags
@@ -60,23 +57,23 @@ if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
             branchIndex = branchIndex(length(branchIndex));
         end
         if length(indexes)==1
-            folder = completeRepoUrl(branchIndex:(indexes-2));
+            ret.folder = completeRepoUrl(branchIndex:(indexes-2));
         else
            % more found so use last one
-           folder = completeRepoUrl(branchIndex:(indexes(length(indexes))-2));
+           ret.folder = completeRepoUrl(branchIndex:(indexes(length(indexes))-2));
         end
     end
-    repoHomeUrl = strrep(completeRepoUrl,givenFolder, '');
-    repoHomeUrl = strrep(repoHomeUrl, folder, '');
-    strrep(repoHomeUrl,'\', '/');
+    ret.repoHomeUrl = strrep(completeRepoUrl,givenFolder, '');
+    ret.repoHomeUrl = strrep(ret.repoHomeUrl, ret.folder, '');
+    strrep(ret.repoHomeUrl,'\', '/');
     for i=1:1:2
-        if strcmp(repoHomeUrl(end),'/')
-            repoHomeUrl=repoHomeUrl(1:(length(repoHomeUrl)-1));
+        if strcmp(ret.repoHomeUrl(end),'/')
+            ret.repoHomeUrl=ret.repoHomeUrl(1:(length(ret.repoHomeUrl)-1));
         end
     end
 else
-    revision = 0;
-    folder = '';
+    ret.revision = 0;
+    ret.folder = '';
     disp('### Error: Something went wrong checking out local Working Copy Infos. Could not find automatic generated cmdout.xml');
 end
 

@@ -358,7 +358,8 @@ function pushbutton_OK_Callback(hObject, eventdata, handles, ProgramOptions)
 if ProgramOptions.enterUserName
     % Check if username is blank
     UserName = strtrim(get(handles.java_UserName, 'Text'));
-    if isempty(UserName)
+    % Modified: 14.06.2015, Daniel Schneider, "Username can be blank!"
+    if false %isempty(UserName)
         strMessage = 'Username is blank';
         %disp(strMessage)
         hError = errordlg(strMessage, 'passwordEntryDialog');

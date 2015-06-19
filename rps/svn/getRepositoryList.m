@@ -1,57 +1,36 @@
-function [folderList, info] = getRepositoryList(repoFolder,username,password)
-%Define important Paths which will be needed ...
-svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
-svnExe = fullfile(svnBin,'svn.exe');
-
+function [folderList, ret] = getRepositoryList(info, repoFolder)
 %Check size of Files which will be transfered..
 command='list';
-custom='--xml';
+custom='--xml --no-auth-cache';
 repUrl = strrep(repoFolder,'\','/');
 
-proxy_port = '--config-option servers:global:http-proxy-port=8080';
-proxy_url = '--config-option servers:global:http-proxy-host=proxy.muc';
-proxy = sprintf('%s %s',proxy_url,proxy_port);
-
-if strcmp(username, '')
-    cmd=sprintf('%s %s %s %s', svnExe, command, repUrl, custom);
+if info.credentialsNeeded
+    cmd=sprintf('%s %s %s %s --username %s --password %s %s', info.svnExe, command, repUrl, custom,info.username,info.password, info.proxy);
 else
-    cmd=sprintf('%s %s %s %s --username %s --password %s', svnExe, command, repUrl, custom,username,password);
+    cmd=sprintf('%s %s %s %s %s', info.svnExe, command, repUrl, custom, info.proxy);
 end
 
 [status, cmdout] = dos(cmd);
 
-% Repeat if E731001, because missing proxy?
-if strfind(cmdout, 'E731001')
-    if strcmp(username, '')
-        cmd=sprintf('%s %s %s %s %s', svnExe, command, repUrl, custom, proxy);
-    else
-        cmd=sprintf('%s %s %s %s --username %s --password %s %s', svnExe, command, repUrl, custom,username,password, proxy);
-    end
-    % Run Query again.
-    [status, cmdout] = dos(cmd);
-end
-
-
-
 % Check for errors during svn command
-[info, message] = handleErrorsSVN(status,cmdout);
-if ~isempty(info)
+[err, message] = handleErrorsSVN(status,cmdout);
+if ~isempty(err)
    % Error
-   uiwait(errordlg(['Error: ' info ', ' message],'SVN Error!'));
-   info = -1;
+   uiwait(errordlg(['Error: ' err ', ' message],'SVN Error!'));
+   ret = -1;
    folderList={};
    return;
 end
 
 % Save output to file...
-fid = fopen(fullfile(pwd, 'cmdout.xml'), 'wt');
+fid = fopen(fullfile(info.homeDir, 'cmdout.xml'), 'wt');
 fprintf(fid,'%s',cmdout);
 fclose(fid);
 
-if isequal(exist(fullfile(pwd,'cmdout.xml'),'file'),2)
+if isequal(exist(fullfile(info.homeDir,'cmdout.xml'),'file'),2)
     % Read XML-File
-    xml = xml2struct(fullfile(pwd,'cmdout.xml'));
-    delete('cmdout.xml');
+    xml = xml2struct(fullfile(info.homeDir,'cmdout.xml'));
+    delete(fullfile(info.homeDir,'cmdout.xml'));
     assignin('base', 'test', xml);
     % store folderList
     folderList={};
@@ -77,5 +56,5 @@ else
     folderList={};
     disp('### Error: Something went wrong getting "log" informations. Could not find automatic generated cmdout.xml...');
 end
-info = 1;
+ret = 1;
 end

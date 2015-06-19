@@ -22,7 +22,7 @@ function varargout = supportPkg_url(varargin)
 
 % Edit the above text to modify the response to help supportPkg_url
 
-% Last Modified by GUIDE v2.5 11-May-2015 12:19:09
+% Last Modified by GUIDE v2.5 13-Jun-2015 20:47:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -60,6 +60,11 @@ warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
 jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','BMW-neg_nav_more_18.png'));
 jframe.setFigureIcon(jIcon);
+
+% Custom Icon Top left
+iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
+btn_im = imread(fullfile(iconsFolder, 'package_icon.jpg'));
+set(handles.btn_icon, 'CData', btn_im);
 
 % Choose default command line output for supportPkg_url
 handles.output = hObject;
@@ -122,7 +127,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 directory = uigetdir(getpref('RapidPrototypingSystem', 'HomeDir'), 'Select Local SupportPackage Files Directory');
 if directory~=0
-    set(handles.url_edit, 'String', directory);
+    set(handles.url_edit, 'String', ['file:\\\' directory]);
 end
 % TODO: INIT hw_installer...
 
@@ -158,3 +163,10 @@ ex.title=[ex.title ' Custom URL'];
 setup.Steps.Children(1).StepData.Labels.Internet='From Custom URL...';
 ex.show;
 %ex.showTreeView(true);
+
+
+% --- Executes on button press in btn_icon.
+function btn_icon_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_icon (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

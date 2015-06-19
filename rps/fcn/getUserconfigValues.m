@@ -1,43 +1,51 @@
-function [status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, repoFolder, revision, simulinkPreference] = getUserconfigValues(xmlFile)
+function [status, configInfo] = getUserconfigValues()
 % This file checks if userconfig.xml exists and reads all needed values
 
-if exist(xmlFile,'file')==2
-    try
-        xml = xml2struct(xmlFile);
+if ispref('RPSuserconfig')
+    % Get Preferences
+    userconfig = getpref('RPSuserconfig');
+    
+    configInfo.updateInterval = userconfig.updateInterval;
+    configInfo.autoUpdate = userconfig.autoUpdate;
 
-        updateInterval = str2num(xml.userconfig.update.updateInterval.Text);
-        autoUpdate = str2num(xml.userconfig.update.autoUpdate.Text);
-
-        url = xml.userconfig.repo.url.Text;
-        repoFolder = xml.userconfig.repo.folder.Text;
-        revision = str2num(xml.userconfig.repo.revision.Text);
-        customUrl = str2num(xml.userconfig.repo.customUrl.Text);
-        credentialsNeeded = str2num(xml.userconfig.repo.credentialsNeeded.Text);
-        simulinkPreference = str2num(xml.userconfig.simulink.defaultPreferences.Text);
-    catch err
-       disp('### Error, actual userconfig.xml contains failures or is not up-to-date.');
-       updateInterval = 10;
-       autoUpdate = false;
-       url = '';
-       customUrl = false;
-       credentialsNeeded=false;
-       repoFolder = 'trunk';
-       revision = 0;
-       status = -1;
-       simulinkPreference = false;
-       return;
-    end
+    configInfo.url = userconfig.url;
+    configInfo.repoFolder = userconfig.folder;
+    configInfo.revision = userconfig.revision;
+    configInfo.customUrl = userconfig.customUrl;
+    configInfo.credentialsSaved = userconfig.credentialsSaved;
+    configInfo.simulinkPreference = userconfig.simulinkDefaultPreferences;
+    configInfo.credentialsNeeded = userconfig.credentialsNeeded;
+    
+    % Proxy
+    configInfo.proxyRequired = userconfig.proxyRequired;
+    configInfo.proxyAddress = userconfig.proxyAddress;
+    configInfo.proxyPort = userconfig.proxyPort;
+    configInfo.proxyExceptions = userconfig.proxyExceptions;
+    configInfo.maxLogEntries = userconfig.maxLogEntries;
     status = 1;
-else
-    updateInterval = 10;
-    autoUpdate = false;
-    url = '';
-    customUrl = false;
-    credentialsNeeded=false;
-    repoFolder = 'trunk';
-    revision = 0;
-    status = -1;
-    simulinkPreference = false;
+    return;
 end
+
+% Standard Config
+configInfo.updateInterval = 10;
+configInfo.autoUpdate = false;
+configInfo.url = '';
+configInfo.customUrl = false;
+configInfo.repoFolder = '';
+configInfo.revision = 0;
+configInfo.simulinkPreference = false;
+configInfo.credentialsNeeded = false;
+configInfo.credentialsSaved = false;
+configInfo.maxLogEntries = 20;
+
+% Proxy
+configInfo.proxyRequired = false;
+configInfo.proxyAddress = '';
+configInfo.proxyPort = 0;
+configInfo.proxyExceptions = '';
+
+
+status = -1;
+
 
 

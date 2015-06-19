@@ -244,8 +244,17 @@ classdef SplashScreen < hgsetget
             % Resize and reposition the window
             obj.Frame.setSize( obj.Icon.getIconWidth(), obj.Icon.getIconHeight() );
             pos = get(0,'MonitorPositions');
-            x0 = pos(1,1) + (pos(1,3)-obj.Icon.getIconWidth())/2;
-            y0 = pos(1,2) + (pos(1,4)-obj.Icon.getIconHeight())/2;
+            %[posx , posy] = size(pos); %Reverted 17.06.2015
+            % Bugfix: 13.06.2015, Daniel Schneider, Wrong Position while using two monitors because get(0,'MonitorPositions') is wrong.
+            % Bugfix: 17.06.2015, Daniel Schneider, "Reverted changes because should work normally! Otherwise something wrong with monitor
+            %                                       recognition"
+            %if posx==1 %Reverted 17.06.2015
+                x0 = pos(1,1) + (pos(1,3)-obj.Icon.getIconWidth())/2;
+                y0 = pos(1,2) + (pos(1,4)-obj.Icon.getIconHeight())/2;
+            %elseif posx >1 %Reverted 17.06.2015
+                %x0 = pos(2,1) + (pos(2,3)-obj.Icon.getIconWidth())/2; %Reverted 17.06.2015
+                %y0 = pos(2,2) + (pos(2,4)-obj.Icon.getIconHeight())/2; %Reverted 17.06.2015
+            %end %Reverted 17.06.2015
             obj.Frame.setLocation( x0, y0 );
             
         end % createInterfaceComponents

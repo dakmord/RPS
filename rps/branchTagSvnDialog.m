@@ -22,7 +22,7 @@ function varargout = branchTagSvnDialog(varargin)
 
 % Edit the above text to modify the response to help branchTagSvnDialog
 
-% Last Modified by GUIDE v2.5 01-Jun-2015 21:49:52
+% Last Modified by GUIDE v2.5 13-Jun-2015 21:11:24
 %               by Daniel Schneider(EK-704), 01.06.2015, Created Branch/Tag Dialog
 %               by Daniel Schneider(EK-704), 08.06.2015, Bugfix because subfolder copy command not possible
 %               by ...
@@ -67,14 +67,19 @@ else
 end
 set(handles.edit_localFolder, 'String', varargin{3});
 
-if ~isnumeric(varargin{4})
-    handles.passwordNeeded = str2num(varargin{4});
-else
-    handles.passwordNeeded = varargin{4};
-end
-
 % Home Dir
 handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+
+% Load svn icon
+iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
+btn_im = imread(fullfile(iconsFolder, 'svn.png'));
+set(handles.btn_icon, 'CData', btn_im);
+
+% Custom GUI Icon
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+jframe=get(hObject,'javaframe');
+jIcon=javax.swing.ImageIcon(fullfile(iconsFolder, 'BMW-neg_act_open_18.png'));
+jframe.setFigureIcon(jIcon);
 
 % Choose default command line output for branchTagSvnDialog
 handles.output = hObject;
@@ -134,23 +139,6 @@ try
         error('Please fill in all marked input parameters.');
     end
 
-    % Check for SVN-Password
-    if handles.passwordNeeded == true
-        % Look for credentials
-        if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-            % Available
-            [username,password] = decryptCredentials();
-        else
-            % Password Missing
-            uiwait(errordlg('Missing SVN Login/Password. Please save your login details.', 'Missing Login Information!'));
-            error('Missing SVN Login/Password!');
-        end
-    else
-        % not needed
-        username = '';
-        password = '';
-    end
-
     % Get local URL/Source
     sourceUrl = fullfile(handles.repoUrl{1}, handles.localFolder);
 
@@ -159,13 +147,13 @@ try
         % Create Tag    
         % ###Bugfix: removed svn copy from subfolders, 08.06.2015, Daniel Schneider
         destinationUrl = fullfile(handles.repoUrl{1}, 'tags', handles.name);
-        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl), fullfile(destinationUrl), username, password);
+        [info] = svnAbstraction('copy',handles.revision, handles.log, fullfile(sourceUrl), fullfile(destinationUrl));
         %[info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
     else
         % Create Branch
         % ###Bugfix: removed svn copy from subfolders, 08.06.2015, Daniel Schneider
         destinationUrl = fullfile(handles.repoUrl{1}, 'branches', handles.name);
-        [info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl), fullfile(destinationUrl), username, password);
+        [info] = svnAbstraction('copy',handles.revision, handles.log, fullfile(sourceUrl), fullfile(destinationUrl));
         %[info] = createBranchTag(handles.revision, handles.log, fullfile(sourceUrl,'help'), fullfile(destinationUrl,'help'), username, password);
     end
     if isequal(info,-1)
@@ -466,3 +454,10 @@ else
     % The GUI is no longer waiting, just close it
     delete(hObject);
 end
+
+
+% --- Executes on button press in btn_icon.
+function btn_icon_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_icon (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

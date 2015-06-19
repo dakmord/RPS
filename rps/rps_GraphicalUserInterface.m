@@ -43,7 +43,10 @@ function varargout = rps_GraphicalUserInterface(varargin)
 
 % Edit the above text to modify the response to help rps_GraphicalUserInterface
 
-% Last Modified by GUIDE v2.5 01-Jun-2015 21:40:53
+% Last Modified by GUIDE v2.5 13-Jun-2015 22:16:51
+
+% Modified:     13.06.2015, Daniel Schneider, "Modified OpeningFcn for new userconfig structure and svnAbstraction."
+%               xx...
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -73,14 +76,33 @@ function rps_GraphicalUserInterface_OpeningFcn(hObject, eventdata, handles, vara
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to rps_GraphicalUserInterface (see VARARGIN)
 
+% Check if started in offline mode
+if nargin == 4  % varargin{1} ... offline mode = true/false
+    handles.offlineMode = varargin{1};
+    handles.offlineMode = handles.offlineMode{1};
+    disp('### Started RPS in offline mode.')
+    
+    % Disable SVN Menus, others will be disabled later
+    set(handles.svn_connect,'Enable', 'off');
+else
+    % No offline mode
+    handles.offlineMode = false;
+    
+    % Initialize Credentials Validated and Server Validated Preference
+    setpref('RapidPrototypingSystem','SVNCredentialsValidated', false);
+    setpref('RapidPrototypingSystem', 'SVNServerValidated', false);
+end
+
 % Create Menu Icons
 set(hObject, 'Visible', 'on');
-pause(0.05);
+pause(0.25);
 set(hObject, 'Visible', 'off');
 addMenuIcons(hObject, handles);
 
 % Save rps home path
-handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
+pref_group = 'RapidPrototypingSystem';
+handles.homeDir = getpref(pref_group, 'HomeDir');
+iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
 
 % Custom GUI Icon
 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
@@ -88,51 +110,181 @@ jframe=get(hObject,'javaframe');
 jIcon=javax.swing.ImageIcon(fullfile(handles.homeDir,'rps','etc','icons_18','bmw_icon.png'));
 jframe.setFigureIcon(jIcon);
 
+% Load svn icon
+btn_im = imread(fullfile(iconsFolder, 'bmw_symbol_warning_18_r.png'));
+set(handles.btn_icon, 'CData', btn_im, 'Visible', 'off');
+
+% Actualize version information
+if ispref(pref_group, 'version');
+    version = getpref(pref_group, 'version');
+else
+    version = '!!Version!!';
+end
 
 % Splash Screen
 s = SplashScreen( 'Rapid-Prototyping-System', 'splashScreen.png', ...
                         'ProgressBar', 'off', ...
                         'ProgressPosition', 5, ...
                         'ProgressRatio', 0.8 );
-s.addText( 40, 50, 'Rapid-Prototyping-System', 'FontSize', 22, 'Color', 'white' ,'FontWeight','bold');
-s.addText( 40, 120, 'v0.8', 'FontSize', 22, 'Color', 'white' );
-s.addText( 200, 270, 'Loading...', 'FontSize', 30, 'Color', 'white','FontWeight','bold' );
+s.addText( 30, 40, 'Rapid-Prototyping-System', 'FontSize', 25,'FontName','BMW Group', 'Color', 'white' ,'FontWeight','bold');
+s.addText( 30, 75, version, 'FontSize', 25,'FontName','BMW Group', 'Color', 'white' );
+s.addText( 380, 360, 'Loading...', 'FontSize', 30,'FontName','BMW Group', 'Color', 'white','FontWeight','bold' );
 
-[hObject, handles] = loadUserDataToHandles(hObject,handles);
-
-% Fill log with actual stuff
-if handles.credentialsNeeded==1
-    % login details
-    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-        % Available
-        [username,password] = decryptCredentials();
-    else
-        % Password Missing
-        error('Missing SVN Login/Password!');
+% Check if login details should be deleted
+if ispref('RPSuserconfig', 'credentialsSaved')
+    if ~getpref('RPSuserconfig', 'credentialsSaved')
+        % Delete auth.mat.aes if availabe
+        if isequal(exist(fullfile(handles.homeDir,'auth.mat.aes'),'file'),2)
+                % Delete
+                delete(fullfile(handles.homeDir,'auth.mat.aes'));
+        end
     end
-    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
-else
-    % without
-    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
 end
 
-set(handles.log_table,'Data',log);
-handles.log = log;
-handles.logFiles = files;
+% Check for First Startup
+if ispref(pref_group, 'FirstStartup')
+    if getpref(pref_group, 'FirstStartup') && isequal(exist(fullfile(handles.homeDir, 'rps', 'fcn','startup_rps.m'),'file'),2)
+        % Remove old startup_rps.m in homeDir
+        if isequal(exist(fullfile(handles.homeDir,'startup_rps.m'),'file'),2)
+            % Delete old startup_rps.m
+            delete(fullfile(handles.homeDir,'startup_rps.m'));
+        end
+        % Publish to Preferences
+        setpref(pref_group, 'FirstStartup', false);
+    end
+end
+
+% Check if userconfig is saved
+if ~ispref('RPSuserconfig') && getpref(pref_group, 'PreferencesReminder') && ~handles.offlineMode
+    % Question if first Startup, ask if preferences should be opened
+    choice = questdlg('No Userconfig for the RPS has been found. Do you want to start the preferences dialog?',...
+        'No RPS Userconfig Found!', 'Yes', 'No', 'Never ask again', 'Yes');
+    drawnow; pause(0.05); %Bugfix: 14.06.2015, Daniel Schneider, "Common Prob: Wait after dlg because MATLAB freezes"
+    switch choice
+        case 'Yes'
+            % Run Preferences Dialog
+            options;
+            drawnow; pause(0.05); %Bugfix: 14.06.2015, Daniel Schneider, "Common Prob: Wait after dlg because MATLAB freezes"
+        case 'Never ask again'
+            setpref(pref_group,'PreferencesReminder', false);
+    end
+end
+    
+% Load Userconfig
+[hObject, handles] = loadUserDataToHandles(hObject,handles);
+
+% Check if SVN is connected
+if ispref('RPSuserconfig') && ~isempty(getpref('RPSuserconfig','url')) && ~handles.offlineMode
+    if ~getpref(pref_group,'SVNConnected') && getpref(pref_group, 'SVNConnectReminder')
+        choiceStr = sprintf('You are not connected to a SVN-Server. Do you want to connect to %s? \nPlease mind that changes since installation will be reverted/deleted!',...
+            getpref('RPSuserconfig', 'url'));
+    	choice = questdlg(choiceStr,...
+            'Not Connected with Server!', 'Yes', 'No', 'Never ask again', 'Yes');
+        drawnow; pause(0.05); %Bugfix: 14.06.2015, Daniel Schneider, "Common Prob: Wait after dlg because MATLAB freezes"
+        switch choice
+            case 'Yes'
+                % Start Loading Animation
+                d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar('Connecting to Server', []);
+                d.setValue(0.25);                        % default = 0
+                d.setProgressStatusLabel('Please wait, checking out...');  % default = 'Please Wait'
+                d.setSpinnerVisible(false);               % default = true
+                d.setCircularProgressBar(true);         % default = false  (true means an indeterminate (looping) progress bar)
+                d.setCancelButtonVisible(false);          % default = true
+                d.setVisible(true);                      % default = false
+                % Run SVNConnect Function
+                if svnAbstraction('checkout',  fullfile(handles.url,'trunk','rps'), fullfile(handles.homeDir, 'rps'), 'infinity') ~= -1   % repository, destination, depth
+                    % Run other commands
+                    svnAbstraction('checkout',  fullfile(handles.url,'trunk','blocks'), fullfile(handles.homeDir, 'blocks'), 'infinity');
+                    svnAbstraction('checkout',  fullfile(handles.url,'trunk','help'), fullfile(handles.homeDir, 'help'), 'infinity');
+                    % Revert
+                    d.setProgressStatusLabel('Please wait, reverting...');
+                    svnAbstraction('revert',fullfile(handles.homeDir, 'rps'));
+                    svnAbstraction('revert',fullfile(handles.homeDir, 'blocks'));
+                    svnAbstraction('revert',fullfile(handles.homeDir, 'help'));
+                    d.setProgressStatusLabel('Please wait, validating...');
+                    % Check if connected
+                    if isequal(exist(fullfile(handles.homeDir, 'rps','.svn'),'dir'),7) && ...
+                            isequal(exist(fullfile(handles.homeDir, 'blocks','.svn'),'dir'),7) && ...
+                            isequal(exist(fullfile(handles.homeDir, 'help','.svn'),'dir'),7)
+                        % valid and everything connected
+                        setpref(pref_group,'SVNConnected',true);
+                        
+                        % Maybe something changed, checkLocalWorkingCopy for Revision, ..
+                        [ret] = svnAbstraction('wcInfo', fullfile(handles.homeDir,'rps'));
+                        handles.revision = ret.revision;
+                        handles.repoFolder = ret.folder;
+
+                        % Store Revision & Folder into userconfig
+                        setpref('RPSuserconfig', 'revision', handles.revision);
+                        setpref('RPSuserconfig', 'folder', handles.repoFolder);
+                    else
+                        uiwait(errordlg('Something went wrong during connecting process. You are still in "not connected" state.', 'Something Wrong'));
+                    end
+                    
+                    d.setProgressStatusLabel('Please wait, retrieving recent changes...');
+                    d.setVisible(false);   
+                else
+                    d.setVisible(false);   
+                    uiwait(errordlg('Something went wrong during connecting process. You are still in "not connected" state.', 'Something Wrong'));
+                end
+            case 'Never ask again'
+                setpref(pref_group,'SVNConnectReminder', false);
+        end
+    end
+end
+
+% Disable SVN Menu Items if SVN is not connected!
+if ~getpref(pref_group,'SVNConnected') || handles.offlineMode
+    % Disable
+    set(handles.svn_branch, 'Enable', 'off');
+    set(handles.svn_switch, 'Enable', 'off');
+    set(handles.svn_delete, 'Enable', 'off');
+    set(handles.svn_refresh, 'Enable', 'off');
+    set(handles.svn_update, 'Enable', 'off');
+    set(handles.checkUpdates_btn, 'Enable', 'off');
+else
+    % Enable
+    set(handles.svn_connect,'Enable', 'off');
+    set(handles.svn_branch, 'Enable', 'on');
+    set(handles.svn_switch, 'Enable', 'on');
+    set(handles.svn_delete, 'Enable', 'on');
+    set(handles.svn_refresh, 'Enable', 'on');
+    set(handles.svn_update, 'Enable', 'on');
+end
+
+% Fill log with actual stuff
+if getpref(pref_group, 'SVNConnected') && ~handles.offlineMode
+    [ret] = svnAbstraction('log');
+else
+    ret = {};
+end
+
+% Check if no error
+if isfield(ret,'log')
+    log = ret.log;
+    files = ret.files;
+    % Set log table
+    set(handles.log_table,'Data',log);
+    % Publish Handles
+    handles.log = log;
+    handles.logFiles = files;
+else
+    handles.log = {};
+    handles.logFiles = {};
+    set(handles.log_table,'Data',{});
+end
 
 % Create Timer Object
-AutoUpdateTimer = timer('TimerFcn', {@timerCallback, hObject, handles},... 
+handles.AutoUpdateTimer = timer('TimerFcn', {@timerCallback, hObject, handles},... 
                  'StartDelay',5,...
                  'ExecutionMode', 'fixedSpacing',...
                  'Period', (handles.updateInterval*60),...
                  'Name', 'AutoUpdateTimer');
 
 % Check wether autoUpdate is on/off
-if handles.autoUpdate ==true
+if handles.autoUpdate && getpref(pref_group, 'SVNConnected') && ~handles.offlineMode && (ret ~= -1)
     % activate Timer
-    start(AutoUpdateTimer);
-else
-    delete(AutoUpdateTimer);
+    start(handles.AutoUpdateTimer);
 end
 
 % Choose default command line output for rps_GraphicalUserInterface
@@ -149,21 +301,27 @@ checkForOutdated(hObject, handles);
 
 
 function timerCallback(obj, event, hObject, handles)
-disp('### Refreshing..')
+disp('### Refreshing log...')
+
+% Show loading animation
+d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar('Refreshing Log...', []);
+d.setValue(0.25);                        % default = 0
+d.setProgressStatusLabel('Please wait, refreshing recent changes...');  % default = 'Please Wait'
+d.setSpinnerVisible(false);               % default = true
+d.setCircularProgressBar(true);         % default = false  (true means an indeterminate (looping) progress bar)
+d.setCancelButtonVisible(false);          % default = true
+d.setVisible(true);                      % default = false
+
 % Fill log with actual stuff
-if handles.credentialsNeeded==1
-    % login details
-    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-        % Available
-        [username,password] = decryptCredentials();
-    else
-        % Password Missing
-        error('Missing SVN Login/Password!');
-    end
-    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
+% Fill log with actual stuff
+[ret] = svnAbstraction('log');
+% Check if no error occured
+if isfield(ret,'log')
+    log = ret.log;
+    files = ret.files;
 else
-    % without
-    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
+    log = {};
+    files = {};
 end
 
 set(handles.log_table,'Data',log);
@@ -176,21 +334,26 @@ guidata(hObject, handles);
 % Check if local repo is outdated
 checkForOutdated(hObject, handles);
 
+d.setVisible(false);                      % default = false
+
+
 
 function addMenuIcons(figure, handles)
 % File
 set(handles.file_menu, 'UserData', 'BMW-neg_med_document_18.png');
 set(handles.file_new, 'UserData', 'BMW-neg_act_logout_18.png');
-set(handles.new_library, 'UserData', '3d_modelling.png');
-set(handles.new_model, 'UserData', 'book.png');
+set(handles.new_library, 'UserData', 'BMW-neg_nav_overview_18.png');
+set(handles.new_model, 'UserData', 'BMW-neg_med_stop_18.png');
 set(handles.new_legacyCode, 'UserData', 'c_logo.png');
 set(handles.file_preferences, 'UserData', 'BMW-neg_com_settings_18.png');
 set(handles.sim_preferences, 'UserData', 'BMW-neg_com_settings_18.png');
 set(handles.file_exit, 'UserData', 'BMW-neg_nav_close_18.png');
 set(handles.file_open, 'UserData', 'BMW-neg_nav_imagegallery_18.png');
-set(handles.file_openRpsLib, 'UserData', 'book.png');
-set(handles.file_openModel, 'UserData', '3d_modelling.png');
-set(handles.file_openLibs, 'UserData', 'book.png');
+set(handles.file_openRpsLib, 'UserData', 'BMW-neg_nav_overview_18.png');
+set(handles.file_openModel, 'UserData', 'BMW-neg_med_stop_18.png');
+set(handles.file_openLibs, 'UserData', 'BMW-neg_nav_overview_18.png');
+set(handles.preferences_model, 'UserData', 'BMW-neg_med_stop_18.png');
+
 
 %SVN
 set(handles.svn_menu, 'UserData', 'BMW-neg_act_replace_18.png');
@@ -198,7 +361,9 @@ set(handles.svn_refresh, 'UserData', 'BMW-neg_int_update_18.png');
 set(handles.svn_update, 'UserData', 'BMW-neg_act_download_18.png');
 set(handles.svn_branch, 'UserData', 'BMW-neg_act_open_18.png');
 set(handles.svn_switch, 'UserData', 'BMW-neg_act_replace_18.png');
-set(handles.svn_delete, 'UserData', 'BMW-neg_nav_close_18.png');
+set(handles.svn_delete, 'UserData', 'BMW-neg_act_delete_18.png');
+set(handles.svn_connect, 'UserData', 'BMW-neg_com_share_18.png');
+
 
 %SupportPackages
 set(handles.supportPkg_menu, 'UserData', 'BMW-neg_act_download_18.png');
@@ -208,6 +373,8 @@ set(handles.supportPkg_mathworks, 'UserData', 'Matlab_Logo.png');
 set(handles.supportPkg_arduino, 'UserData', 'arduino_logo.png');
 set(handles.supportPkg_tm4c1294npdt, 'UserData', 'ti_logo.png');
 set(handles.supportPkg_url, 'UserData', 'BMW-neg_nav_more_18.png');
+set(handles.supportPkg_template, 'UserData', 'BMW-neg_com_toolbox_18.png');
+
 
 %Help
 set(handles.help_menu, 'UserData', 'BMW-neg_com_help_18.png');
@@ -218,13 +385,31 @@ Figure_Menu_Add_Icons(figure);
 
 
 function checkForOutdated(hObject, handles)
-if handles.revision<str2num(handles.log{1,1})
-    set(handles.outdated_text,'Visible','on');
-    set(handles.revision_edit, 'String',num2str(handles.revision));
-else
-    set(handles.outdated_text,'Visible','off');
-    set(handles.revision_edit, 'String',num2str(handles.revision));
+% Maybe something changed, checkLocalWorkingCopy for Revision, ..
+if ispref('RapidPrototypingSystem', 'SVNConnected')
+    if getpref('RapidPrototypingSystem', 'SVNConnected')
+        [ret] = svnAbstraction('wcInfo', fullfile(handles.homeDir,'rps'));
+        handles.revision = ret.revision;
+        handles.repoFolder = ret.folder;
+        % Store Revision & Folder into userconfig
+        setpref('RPSuserconfig', 'revision', handles.revision);
+        setpref('RPSuserconfig', 'folder', handles.repoFolder);
+        
+        % Publish handles
+        guidata(hObject, handles);
+    end
 end
+
+if isfield(handles, 'log') && ~isempty(handles.log)
+    if handles.revision<str2num(handles.log{1,1})
+        set(handles.btn_icon, 'Visible', 'on');
+        set(handles.revision_edit, 'String',num2str(handles.revision));
+    else
+        set(handles.btn_icon, 'Visible', 'off');
+        set(handles.revision_edit, 'String',num2str(handles.revision));
+    end
+end
+
 
 
 % --- Outputs from this function are returned to the command line.
@@ -280,29 +465,41 @@ function svn_update_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Start Update Dialog with revision
-updateDialog({handles.credentialsNeeded}, handles.url);
+[updateFigure, done] = updateDialog({handles.url});
+if done
+    %Updating gui... and configuration file
+    [ret] = svnAbstraction('wcInfo',fullfile(handles.homeDir,'blocks'));
 
-%Updating gui... and configuration file
-[revision, folder, repoHomeUrl] = checkLocalWorkingCopy(fullfile(handles.homeDir,'blocks'));
-handles.revision = revision;
-handles.repoFolder = folder;
+    handles.revision = ret.revision;
+    handles.repoFolder = ret.folder;
 
-% Get Simulink pref
-if strcmp(get(handles.preferences_default,'Checked'), 'on')
-	handles.simulinkPereferences = true;
-else
-    handles.simulinkPereferences = false;
+    % Get Simulink pref
+    if strcmp(get(handles.preferences_default,'Checked'), 'on')
+        handles.simulinkPereferences = true;
+    else
+        handles.simulinkPereferences = false;
+    end
+
+    % Update handles
+    guidata(hObject, handles);
+
+    % Update GUI
+    checkForOutdated(hObject, handles);
+
+    % Save changes to userconfig
+    group = 'RPSuserconfig';
+    setpref(group, 'revision',handles.revision);
+    setpref(group, 'folder', handles.repoFolder);
+    setpref(group, 'simulinkDefaultPreferences', handles.simulinkPereferences);
+
+    % Refresh MATLAB paths
+    addRpsPaths()
+
+    % Rehash and Reload Simulink Browser
+    rehash;
+    libBrow = LibraryBrowser.StandaloneBrowser;
+    libBrow.refreshLibraryBrowser;
 end
-
-% Update handles
-guidata(hObject, handles);
-
-% Update GUI
-checkForOutdated(hObject, handles);
-
-% Store in userconfig.xml
-createUserconfigXML(hObject, handles);
-
 figure(gcf);
 
 
@@ -376,13 +573,32 @@ try
     enableDisableFig(gcf,'off');
     [optionsFig, switchRepository] = options;
     if switchRepository==true
-        close(gcf);
+        %close(gcf);
+        % Restart GUI
+        rps_GraphicalUserInterface;
         return;
     end
     [hObject, handles] = loadUserDataToHandles(hObject, handles);
 
     % Update handles structure
     guidata(hObject, handles);
+    
+    % Check wether autoUpdate is on/off
+    if handles.autoUpdate ==true && getpref('RapidPrototypingSystem', 'SVNConnected')==true
+        % activate Timer
+        timer = timerfind('Name', 'AutoUpdateTimer');
+        if ~isempty(timer)
+            stop(timer);
+            set(timer,'Period', (handles.updateInterval*60));
+            start(timer);
+        end
+    else
+        % deactivate Timer
+        timer = timerfind('Name', 'AutoUpdateTimer');
+        if ~isempty(timer)
+            stop(timer);
+        end
+    end
 catch err
     enableDisableFig(gcf,'on');
     figure(gcf);
@@ -392,45 +608,58 @@ enableDisableFig(gcf,'on');
 figure(gcf);
 
 function [hObject, handles] = loadUserDataToHandles(hObject,handles)
-% Check if it userconfig.xml is missing
-if ~isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
-    % not existing, open preferences!
-    disp('### Missing userconfig.xml in your folder. Opening preferences...');
-    [optionsFig, switchRepository] = options;
-    pause(0.5);
-    if isequal(exist(fullfile(handles.homeDir, 'userconfig.xml'),'file'),2)
-        % existing
-    else
-        % still missing
-        error('Missing userconfig.xml in your Rapid-Prototyping-System directory! Re-run gui and fill in preferences window!');
-    end
+% read userconfig and save in handles
+[status, config] = getUserconfigValues();
+
+if status == -1
+    % Pref Group
+    group = 'RPSuserconfig';
     
+    % Save to Userconfig
+    setpref(group,'updateInterval',config.updateInterval);
+    setpref(group,'autoUpdate',config.autoUpdate);
+    setpref(group,'folder',config.repoFolder);
+    setpref(group,'revision',config.revision);
+    setpref(group,'customUrl',config.customUrl);
+    setpref(group,'credentialsSaved',config.credentialsSaved);
+    setpref(group,'credentialsNeeded',config.credentialsNeeded);
+    setpref(group,'simulinkDefaultPreferences',config.simulinkPreference);
+    setpref(group,'proxyRequired',config.proxyRequired);
+    setpref(group,'proxyAddress',config.proxyAddress);
+    setpref(group,'proxyPort',config.proxyPort);
+    setpref(group,'proxyExceptions',config.proxyExceptions);
+    setpref(group,'maxLogEntries', config.maxLogEntries);
+    setpref(group,'url', config.url);
 end
 
-% existing, read userconfig and save in handles
-[status ,updateInterval, autoUpdate,customUrl,credentialsNeeded, url, ...
-repoFolder, revision, simPreferences] = getUserconfigValues(fullfile(handles.homeDir,'userconfig.xml'));
-
 % create basic handles
-handles.updateInterval = updateInterval;
-handles.autoUpdate = autoUpdate;
-handles.customUrl = customUrl;
-handles.credentialsNeeded = credentialsNeeded;
-handles.url = url;
-handles.repoFolder = repoFolder;
-handles.revision = revision;
-handles.maxLogEntries = 20;
-handles.simulinkPereferences = simPreferences;
+handles.updateInterval = config.updateInterval;
+handles.autoUpdate = config.autoUpdate;
+handles.customUrl = config.customUrl;
+handles.credentialsNeeded = config.credentialsNeeded;
+handles.credentialsSaved = config.credentialsSaved;
+handles.url = config.url;
+handles.repoFolder = config.repoFolder;
+handles.revision = config.revision;
+handles.maxLogEntries = config.maxLogEntries;
+handles.simulinkPereferences = config.simulinkPreference;
+handles.proxyPort = config.proxyPort;
+handles.proxyAddress = config.proxyAddress;
+handles.proxyRequired = config.proxyRequired;
+handles.proxyExceptions = config.proxyExceptions;
 
-% Maybe something changed, checkLocalWorkingCopy for Revision, ..
-[revision, folder, repoHomeUrl] = checkLocalWorkingCopy(fullfile(handles.homeDir,'rps'));
-handles.revision = revision;
-handles.repoFolder = folder;
+% Check if Connected
+if getpref('RapidPrototypingSystem', 'SVNConnected')
+    % Maybe something changed, checkLocalWorkingCopy for Revision, ..
+    [ret] = svnAbstraction('wcInfo', fullfile(handles.homeDir,'rps'));
+    handles.revision = ret.revision;
+    handles.repoFolder = ret.folder;
 
-% Store Revision & Folder into userconfig.xml
-[ret] = savePreferenceToXML('revision', handles.revision);
-[ret] = savePreferenceToXML('repoFolder', handles.repoFolder);
-
+    % Store Revision & Folder into userconfig
+    setpref('RPSuserconfig', 'revision', handles.revision);
+    setpref('RPSuserconfig', 'folder', handles.repoFolder);
+end
+    
 % Actualize components
 set(handles.revision_edit,'String',num2str(handles.revision));
 set(handles.repo_edit,'String',handles.repoFolder);
@@ -481,8 +710,8 @@ if strcmp(get(handles.preferences_default, 'Checked'),'off')
     % Set Checked
     set(handles.preferences_default, 'Checked', 'on');
     
-    % Load Userconfig and add it to XML
-    [ret] = savePreferenceToXML('simDefault', true);
+    % Save to userconfig
+    setpref('RPSuserconfig', 'simulinkDefaultPreferences',true);
     
     % Check for present cfg file and copy to _*
     if isequal(exist(fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'),'file'),2)
@@ -495,13 +724,12 @@ if strcmp(get(handles.preferences_default, 'Checked'),'off')
     % Add current include paths
     ConfigSetSettings.Defaults = addIncludePathToConfigSet(configStruct.basicSimulinkConfig);
     save(fullfile(prefdir(),'Simulink_ConfigSet_Prefs.mat'),'ConfigSetSettings');
-    
 else
     % uncheck
     set(handles.preferences_default, 'Checked', 'off');
     
-    % Load Userconfig and add it to XML
-    [ret] = savePreferenceToXML('simDefault', false);
+    % Save to userconfig
+    setpref('RPSuserconfig', 'simulinkDefaultPreferences',false);
     
     % Disable and revert
     if isequal(exist(fullfile(prefdir(),'_Simulink_ConfigSet_Prefs.mat'),'file'),2)
@@ -550,7 +778,7 @@ enableDisableFig(gcf,'off');
 % = passwordNeeded
 try
     url = handles.url;
-    branchTagSvnDialog({url},handles.revision,handles.repoFolder, handles.credentialsNeeded);
+    branchTagSvnDialog({url},handles.revision,handles.repoFolder);
     enableDisableFig(gcf,'on');
     figure(gcf);
 catch err
@@ -573,14 +801,13 @@ try
     [switchFig, isSwitched, newFolder] = switchSvnDialog(...
         {handles.url},...
         handles.revision,...
-        handles.repoFolder,...
-        handles.credentialsNeeded);
+        handles.repoFolder);
     
     % Handle SwitchDialog Outputs (Switched? to which folder?)
     if isSwitched
         % Load Userconfig and add it to XML
         if ischar(newFolder)
-            [ret] = savePreferenceToXML('repoFolder', newFolder);
+            setpref('RPSuserconfig', 'folder',newFolder)
             set(handles.repo_edit, 'String', newFolder);
             
             % Publish to handles
@@ -658,21 +885,17 @@ sb.CornerGrip.setVisible(false);
 %set(sb.CornerGrip, 'visible','off');
 
 % Fill log with actual stuff
-if handles.credentialsNeeded==1
-    % login details
-    if isequal(exist(fullfile(handles.homeDir,'credentials.xml.aes'),'file'),2)
-        % Available
-        [username,password] = decryptCredentials();
-    else
-        % Password Missing
-        error('Missing SVN Login/Password!');
-    end
-    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,username,password);
+[ret] = svnAbstraction('log');
+% Check if no error occured
+if isfield(ret,'log')
+    log = ret.log;
+    files = ret.files;
 else
-    % without
-    [log, files] = getRepositoryLog(handles.url,handles.repoFolder,handles.maxLogEntries,'','');
+    log = {};
+    files = {};
 end
 
+% Create Handles and set log
 set(handles.log_table,'Data',log);
 handles.log = log;
 handles.logFiles = files;
@@ -742,7 +965,7 @@ function log_table_CellSelectionCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Check if valid
-if length(eventdata.Indices)>0
+if length(eventdata.Indices)>0 && ~isempty(handles.log) && ~isempty(handles.logFiles)
     % handle Data
     data = get(handles.log_table,'Data');
     commit = handles.logFiles;
@@ -949,7 +1172,7 @@ function svn_delete_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Start Update Dialog with revision
-deleteSvnDialog({handles.url}, handles.credentialsNeeded, handles.repoFolder);
+deleteSvnDialog({handles.url}, handles.repoFolder);
 
 figure(gcf);
 
@@ -1020,9 +1243,114 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: delete(hObject) closes the figure
+
+% Check if delete login details
+if ispref('RPSuserconfig', 'credentialsSaved')
+    if ~getpref('RPSuserconfig', 'credentialsSaved')
+        % Delete auth.mat.aes if availabe
+        if isequal(exist(fullfile(handles.homeDir,'auth.mat.aes'),'file'),2)
+            % Delete
+            delete(fullfile(handles.homeDir,'auth.mat.aes'));
+        end
+    end
+end
+
 timer = timerfind('Name', 'AutoUpdateTimer');
 if ~isempty(timer)
     stop(timer);
     delete(timer);
 end
 delete(hObject);
+
+
+% --------------------------------------------------------------------
+function svn_connect_Callback(hObject, eventdata, handles)
+% hObject    handle to svn_connect (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Check if SVN is connected
+if ispref('RPSuserconfig') && ~isempty(getpref('RPSuserconfig','url'))
+    if ~getpref('RapidPrototypingSystem','SVNConnected')
+        choiceStr = sprintf('Do you want to connect to "%s"? \nPlease mind that changes since installation will be reverted/deleted!',...
+            getpref('RPSuserconfig', 'url'));
+    	choice = questdlg(choiceStr,...
+            'Connect to Server!', 'Yes', 'No', 'Yes');
+        switch choice
+            case 'Yes'
+                % Start Loading Animation
+                d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar('Connecting to Server', []);
+                d.setValue(0.25);                        % default = 0
+                d.setProgressStatusLabel('Please wait, checking out...');  % default = 'Please Wait'
+                d.setSpinnerVisible(false);               % default = true
+                d.setCircularProgressBar(true);         % default = false  (true means an indeterminate (looping) progress bar)
+                d.setCancelButtonVisible(false);          % default = true
+                d.setVisible(true);                      % default = false
+                % Run SVNConnect Function
+                if svnAbstraction('checkout',  fullfile(handles.url,'trunk','rps'), fullfile(handles.homeDir, 'rps'), 'infinity') ~= -1   % repository, destination, depth
+                    % Run other commands
+                    svnAbstraction('checkout',  fullfile(handles.url,'trunk','blocks'), fullfile(handles.homeDir, 'blocks'), 'infinity');
+                    svnAbstraction('checkout',  fullfile(handles.url,'trunk','help'), fullfile(handles.homeDir, 'help'), 'infinity');
+                    % Revert
+                    d.setProgressStatusLabel('Please wait, reverting...');
+                    svnAbstraction('revert',fullfile(handles.homeDir, 'rps'));
+                    svnAbstraction('revert',fullfile(handles.homeDir, 'blocks'));
+                    svnAbstraction('revert',fullfile(handles.homeDir, 'help'));
+                    
+                    d.setProgressStatusLabel('Please wait, validating...');
+                    % Check if connected
+                    if isequal(exist(fullfile(handles.homeDir, 'rps','.svn'),'dir'),7) && ...
+                            isequal(exist(fullfile(handles.homeDir, 'blocks','.svn'),'dir'),7) && ...
+                            isequal(exist(fullfile(handles.homeDir, 'help','.svn'),'dir'),7)
+                        % valid and everything connected
+                        setpref('RapidPrototypingSystem','SVNConnected',true);
+                        % Maybe something changed, checkLocalWorkingCopy for Revision, ..
+                        [ret] = svnAbstraction('wcInfo', fullfile(handles.homeDir,'rps'));
+                        handles.revision = ret.revision;
+                        handles.repoFolder = ret.folder;
+
+                        % Store Revision & Folder into userconfig
+                        setpref('RPSuserconfig', 'revision', handles.revision);
+                        setpref('RPSuserconfig', 'folder', handles.repoFolder);
+                        
+                        % Enable GUI Components
+                        set(handles.svn_connect,'Enable', 'off');
+                        set(handles.svn_branch, 'Enable', 'on');
+                        set(handles.svn_switch, 'Enable', 'on');
+                        set(handles.svn_delete, 'Enable', 'on');
+                        set(handles.svn_refresh, 'Enable', 'on');
+                        set(handles.svn_update, 'Enable', 'on');
+                        d.setVisible(false);   
+                        
+                        % Refresh Log
+                        checkUpdates_btn_Callback(hObject, eventdata, handles);
+                    else
+                        d.setVisible(false);   
+                        uiwait(errordlg('Something went wrong during connecting process. You are still in "not connected" state.', 'Something Wrong'));
+                    end
+                else
+                    d.setVisible(false);   
+                    uiwait(errordlg('Something went wrong or connecting process aborted. You are still in "not connected" state.', 'Something Wrong/Aborted'));
+                end
+            otherwise
+                % do nothing
+                return;
+        end
+    else
+        uiwait(errordlg('You are still connected. This menu item should not be available during connected state.', 'Something Wrong'));
+    end
+else
+    uiwait(errordlg('Missing SVN URL/Preferences! Please fill in all neccessary preferences.','Missing Preferences'));
+end
+
+% --------------------------------------------------------------------
+function supportPkg_template_Callback(hObject, eventdata, handles)
+% hObject    handle to supportPkg_template (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in btn_icon.
+function btn_icon_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_icon (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

@@ -58,12 +58,16 @@ function deleteSvnDialog_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.repoUrl = varargin{1};
 handles.repoUrl = handles.repoUrl{1};
 handles.url = handles.repoUrl;
-handles.repoFolder = varargin{3};
-if isnumeric(varargin{2})
-    handles.credentialsNeeded = varargin{2};
-else
-    handles.credentialsNeeded = str2num(varargin{2});
-end
+handles.repoFolder = varargin{2};
+
+% Show loading animation
+d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar('Loading Branches/Tags', []);
+d.setValue(0.25);                        % default = 0
+d.setProgressStatusLabel('Please wait, loading branches/tags...');  % default = 'Please Wait'
+d.setSpinnerVisible(false);               % default = true
+d.setCircularProgressBar(true);         % default = false  (true means an indeterminate (looping) progress bar)
+d.setCancelButtonVisible(false);          % default = true
+d.setVisible(true);                      % default = false
 
 % Get parent dir
 handles.homeDir = getpref('RapidPrototypingSystem', 'HomeDir');
@@ -72,27 +76,19 @@ iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
 % Custom GUI Icon
 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 jframe=get(hObject,'javaframe');
-jIcon=javax.swing.ImageIcon(fullfile(iconsFolder, 'svn.png'));
+jIcon=javax.swing.ImageIcon(fullfile(iconsFolder, 'BMW-neg_act_delete_18.png'));
 jframe.setFigureIcon(jIcon);
 
 % Load svn icon
 btn_im = imread(fullfile(iconsFolder, 'svn.png'));
 set(handles.btn_icon, 'CData', btn_im);
 
-% Check for SVN Username/Password
-[username,password] = readEncryptedPassword(handles);
-
 % Initialize Branch/Tag Popupmenu Items
-[branches, info] = getRepositoryList(fullfile(handles.repoUrl,'branches'),username,password);
-if isequal(info,-1)
-    % Error
-    error('Something went wrong during reading branches...! (Connection, Login, ...)');
-end
-[tags, info] = getRepositoryList(fullfile(handles.repoUrl,'tags'),username,password);
-if isequal(info,-1)
-    % Error
-    error('Something went wrong during reading tags...! (Conncetion, Login, ...)');
-end
+[ret] = svnAbstraction('subfolderList',fullfile(handles.repoUrl,'branches'));
+branches = ret.folderList;
+
+[ret] = svnAbstraction('subfolderList',fullfile(handles.repoUrl,'tags'));
+tags = ret.folderList;
 
 % Set Strings for Popupmenus
 if ~isempty(tags)
@@ -108,6 +104,9 @@ handles.isBranch = false;
 handles.tag = getCurrentPopupString(handles.popup_tag);
 handles.branch = '';
 handles.log = get(handles.edit_log, 'String');
+
+% Hide Loading Animation
+d.setVisible(false);                      % default = false
 
 % Choose default command line output for deleteSvnDialog
 handles.output = hObject;
@@ -146,40 +145,50 @@ function btn_ok_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Show loading animation
+d = com.mathworks.mlwidgets.dialog.ProgressBarDialog.createProgressBar('Deleting...', []);
+d.setValue(0.25);                        % default = 0
+d.setProgressStatusLabel('Please wait, deleting selected branch/tag...');  % default = 'Please Wait'
+d.setSpinnerVisible(false);               % default = true
+d.setCircularProgressBar(true);         % default = false  (true means an indeterminate (looping) progress bar)
+d.setCancelButtonVisible(false);          % default = true
+d.setVisible(true);                      % default = false
+
 % Check if Selected deletion is equal current working copy folder
 if handles.isTag
     if strcmp(handles.tag, handles.repoFolder)
-        error('You cannot delete your selected tag/branch please switch to another Branch/Tag/Trunk before deleting');
+        uiwait(errordlg('You cannot delete your selected tag/branch please switch to another Branch/Tag/Trunk before deleting','Wrong Selection'));
+        return;
     end
 elseif handles.isBranch
     if strcmp(handles.branch, handles.repoFolder)
-       error('You cannot delete your selected tag/branch please switch to another Branch/Tag/Trunk before deleting');
+       uiwait(errordlg('You cannot delete your selected tag/branch please switch to another Branch/Tag/Trunk before deleting','Wrong Selection'));
+       return;
     end
 end
 
 % Check if log is not empty
 if isempty(get(handles.edit_log, 'String'))
     errordlg('Please fill in a Log-Message before deletion can be done.', 'Log-Message Required!');
-    error('Please fill in a Log-Message before deletion can be done.');
+    return;
 end
 
 % Check if input parameter valid
 if handles.isTag
     if isempty(handles.tag)
         % Tag selected and empty
-        error('You selected to delete a tag but it seems to be empty. Maybe there are not tags which can be deleted!');
+        uiwait(errordlg('You selected to delete a tag but it seems to be empty. Maybe there are not tags which can be deleted!', 'Empty Entry!'));
+        return;
     end
 elseif handles.isBranch
     if isempty(handles.branch)
         % Branch selected and empty
-        error('You selected to delete a branch but it seems to be empty. Maybe there are not branches which can be deleted!');
+        uiwait(errordlg('You selected to delete a branch but it seems to be empty. Maybe there are not branches which can be deleted!','Empty Entry'));
+        return;
     end
 else
     error('Something went wrong during selection of Branch/Tag. Nothing is selected?');
 end
-
-% Check for SVN Login/Password
-[username,password] = readEncryptedPassword(handles);
 
 % Delete selected Branch/Tag
 if  handles.isTag
@@ -189,10 +198,14 @@ elseif handles.isBranch
 end
 
 % Delete
-if isequal(deleteSVN(deletePath, handles.log, username, password),-1)
+if isequal(svnAbstraction('delete',deletePath, handles.log),-1)
     % Error
-    error('Something went wrong while deleting a tag/branch!');
+    errordlg('Something went wrong during deleting a tag/branch!','Failed to Delete');
+    return;
 end
+
+% Hide Loading animation
+d.setVisible(false);                      % default = false
 
 % Close this dialog
 close(gcf);

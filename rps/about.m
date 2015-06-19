@@ -22,7 +22,7 @@ function varargout = about(varargin)
 
 % Edit the above text to modify the response to help about
 
-% Last Modified by GUIDE v2.5 11-May-2015 11:46:59
+% Last Modified by GUIDE v2.5 10-Jun-2015 09:20:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -71,12 +71,16 @@ guidata(hObject, handles);
 % uiwait(handles.figure1);
 
 % Insert BMW Logo
+iconsFolder = fullfile(handles.homeDir, 'rps', 'etc', 'icons_18');
+btn_im = imread(fullfile(iconsFolder, 'BMW-Logo-33.jpg'));
+set(handles.btn_icon, 'CData', btn_im);
 
-axes(handles.axes1)
-[I] = imread(fullfile('etc','icons_18','BMW-Logo-33.jpg'));
-image(I);
-axis off;
-axis image;
+% Actualize version information
+if ispref('RapidPrototypingSystem', 'version');
+    version = getpref('RapidPrototypingSystem', 'version');
+    set(handles.text_version, 'String', version);   
+end
+
 
 
 % --- Outputs from this function are returned to the command line.
@@ -134,3 +138,18 @@ function edit2_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in btn_icon.
+function btn_icon_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_icon (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton2.
+function pushbutton2_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+close(gcf);

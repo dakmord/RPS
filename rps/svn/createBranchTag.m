@@ -1,38 +1,32 @@
-function [info] = createBranchTag(revision, message, sourceUrl, destinationUrl, username, password)
-% Home Path
-svnBin = getpref('RapidPrototypingSystem', 'SvnBinaries');
-svnExe = fullfile(svnBin,'svn.exe');
-
+function [ret] = createBranchTag(info, revision, message, sourceUrl, destinationUrl, username, password)
 % Initialize Commandline call
 command='copy';
 revision = ['-r ' revision];
-custom = '--force-log --parents';
+custom = '--force-log --parents --no-auth-cache';
 message = ['--message "' message '"'];
 
 % replace path seperators
 sourceUrl = strrep(sourceUrl,'\', '/');
 destinationUrl = strrep(destinationUrl,'\', '/');
 
-if isempty(username) && isempty(password)
-    % No login/password
-    cmd=sprintf('%s %s %s %s %s %s %s', svnExe, command, revision, ...
-        sourceUrl, destinationUrl, custom, message);
+if info.credentialsNeeded
+    cmd=sprintf('%s %s %s %s %s %s %s --username %s --password %s %s', info.svnExe, command, revision, ...
+        sourceUrl, destinationUrl, custom, message, info.username, info.password, info.proxy);
 else
-    % login/password needed
-    cmd=sprintf('%s %s %s %s %s %s %s --username %s --password %s', svnExe, command, revision, ...
-        sourceUrl, destinationUrl, custom, message, username, password);
+    cmd=sprintf('%s %s %s %s %s %s %s %s', info.svnExe, command, revision, ...
+        sourceUrl, destinationUrl, custom, message, info.proxy);
 end
 [status, cmdout] = dos(cmd);
 
 % Check for errors during svn command
-[info, message] = handleErrorsSVN(status,cmdout);
-if ~isempty(info)
+[err, message] = handleErrorsSVN(status,cmdout);
+if ~isempty(err)
    % Error
-   uiwait(errordlg(['Error: ' info ', ' message],'SVN Error!'));
-   info=-1;
+   uiwait(errordlg(['Error: ' err ', ' message],'SVN Error!'));
+   ret=-1;
    return;
 end
 
-info = 1;
+ret = 1;
 end
 
