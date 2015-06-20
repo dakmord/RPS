@@ -4,7 +4,7 @@
     <ThirdPartyPackage name="Energia Software" url="">
         <Platform name="PCWIN,PCWIN64" version="1" filename="" destdir="energia-0101E0014" 
                   installer="" archive="energia-0101E0014.zip" 
-                  downloadurl="https://github.com/dakmord/RPS/releases/download/0.8"
+                  downloadurl="https://github.com/dakmord/RPS/releases/download/SupportPackages"
                   installcmd="matlab:unzip('$(DOWNLOADDIR)$(FILESEP)$(ARCHIVE)', '$(INSTALLDIR)')" 
                   removecmd="" 
                   licenseurl="https://github.com/energia/Energia/blob/master/license.txt">
