@@ -314,24 +314,24 @@ info(1:3) = struct(...
     );
 
 % Dependency info for S-function 'sfunc_digitalWriteEnergia'
-info(1).SFunctionName = 'sfunc_digitalWriteEnergia';
+info(1).SFunctionName = 'sfcn_digitalWriteEnergia';
 info(1).IncPaths = {'src'};
 info(1).SrcPaths = {'src'};
 info(1).SourceFiles = {'gpioEnergia.c'};
 info(1).singleCPPMexFile = 1;
-info(1).SFunctionName = 'sfunc_digitalWriteEnergia';
+info(1).SFunctionName = 'sfcn_digitalWriteEnergia';
 info(1).IncPaths = {'src'};
 info(1).SrcPaths = {'src'};
 info(1).SourceFiles = {'gpioEnergia.c'};
 info(1).singleCPPMexFile = 1;
 info(1).Language = 'C';
 % Dependency info for S-function 'sfunc_digitalReadEnergia'
-info(2).SFunctionName = 'sfunc_digitalReadEnergia';
+info(2).SFunctionName = 'sfcn_digitalReadEnergia';
 info(2).IncPaths = {'src'};
 info(2).SrcPaths = {'src'};
 info(2).SourceFiles = {'gpioEnergia.c'};
 info(2).singleCPPMexFile = 1;
-info(2).SFunctionName = 'sfunc_digitalReadEnergia';
+info(2).SFunctionName = 'sfcn_digitalReadEnergia';
 info(2).IncPaths = {'src'};
 info(2).SrcPaths = {'src'};
 info(2).SourceFiles = {'gpioEnergia.c'};
@@ -374,17 +374,52 @@ info(5).SourceFiles = {'gpioEnergia.c'};
 info(5).singleCPPMexFile = 1;
 info(5).Language = 'C';
 % Dependency info for S-function 'sfunc_analogWriteEnergia'
-info(6).SFunctionName = 'sfunc_analogWriteEnergia';
+info(6).SFunctionName = 'sfcn_analogWriteEnergia';
 info(6).IncPaths = {'src'};
 info(6).SrcPaths = {'src'};
 info(6).SourceFiles = {'gpioEnergia.c'};
 info(6).singleCPPMexFile = 1;
-info(6).SFunctionName = 'sfunc_analogWriteEnergia';
+info(6).SFunctionName = 'sfcn_analogWriteEnergia';
 info(6).IncPaths = {'src'};
 info(6).SrcPaths = {'src'};
 info(6).SourceFiles = {'gpioEnergia.c'};
 info(6).singleCPPMexFile = 1;
 info(6).Language = 'C';
-
+% Dependency info for S-function 'sfcn_analogWriteEnergia'
+info(7).SFunctionName = 'sfcn_serialReceiveEnergia';
+info(7).IncPaths = {'src'};
+info(7).SrcPaths = {'src'};
+info(7).SourceFiles = {'serialEnergia.c'};
+info(7).singleCPPMexFile = 1;
+info(7).SFunctionName = 'sfcn_serialReceiveEnergia';
+info(7).IncPaths = {'src'};
+info(7).SrcPaths = {'src'};
+info(7).SourceFiles = {'serialEnergia.c'};
+info(7).singleCPPMexFile = 1;
+info(7).Language = 'C';
+% Dependency info for S-function 'sfcn_analogWriteEnergia'
+info(8).SFunctionName = 'sfcn_serialWriteEnergia';
+info(8).IncPaths = {'src'};
+info(8).SrcPaths = {'src'};
+info(8).SourceFiles = {'serialEnergia.c'};
+info(8).singleCPPMexFile = 1;
+info(8).SFunctionName = 'sfcn_serialWriteEnergia';
+info(8).IncPaths = {'src'};
+info(8).SrcPaths = {'src'};
+info(8).SourceFiles = {'serialEnergia.c'};
+info(8).singleCPPMexFile = 1;
+info(8).Language = 'C';
+% Dependency info for S-function 'sfcn_analogWriteEnergia'
+info(9).SFunctionName = 'sfcn_linSendEnergia';
+info(9).IncPaths = {'src'};
+info(9).SrcPaths = {'src'};
+info(9).SourceFiles = {'serialEnergia.c'};
+info(9).singleCPPMexFile = 1;
+info(9).SFunctionName = 'sfcn_linSendEnergia';
+info(9).IncPaths = {'src'};
+info(9).SrcPaths = {'src'};
+info(9).SourceFiles = {'serialEnergia.c'};
+info(9).singleCPPMexFile = 1;
+info(9).Language = 'C';
 
 if (exist('rtwmakecfgTM4C1294NPDT_user','file') == 2), info = [info rtwmakecfgTM4C1294NPDT_user()]; end

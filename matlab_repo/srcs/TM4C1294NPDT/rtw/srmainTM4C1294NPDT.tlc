@@ -134,9 +134,6 @@
         pinMode(%<overrunPin>, OUTPUT);
     %endif
 
-    #ifdef _RTT_USE_SERIAL0_
-        Serial_begin(0, %<serial0BaudRate>); 
-    #endif
     
 %% analogReference is not used because tm4c1294ncpdt processor does support
 %% external or default VDD ... GND reference

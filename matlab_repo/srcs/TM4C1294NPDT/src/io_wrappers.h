@@ -8,6 +8,12 @@
 #include <stdio.h>
 
 
+// Serial
+void Serial_beginEnergia(int port, long r);
+void Serial_readEnergia(int port, unsigned char *outData, int *outStatus, int receiveBufferLength);
+void Serial_writeEnergia(int port, unsigned char *c, int s);
+
+// Ethernet
 void MW_EthernetBegin(void);
 
 uint8_t MW_UDPBegin(uint32_t localPort);

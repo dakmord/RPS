@@ -6,7 +6,7 @@ makeinfo = realtime.internal.rtwmakecfgTM4C1294NPDT;
 
 info.SourceFiles            = i_getSourceFiles(makeinfo);
 
-info.SourceFilesToSkip      = {'main.cpp'};
+info.SourceFilesToSkip      = {'sys_main.c'};
 info.IncludePaths           = union(i_getIncludePaths, makeinfo.includePath);
 info.CompileFlags           = [ '-w ' ...
                                 '-Os ' ...

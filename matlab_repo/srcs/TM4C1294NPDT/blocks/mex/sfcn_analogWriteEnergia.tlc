@@ -1,24 +1,27 @@
-%% File : sfunc_digitalWriteEnergia.tlc
+%% File : sfcn_analogWriteEnergia.tlc
 %%
 %% Description: 
-%%   Simulink Coder TLC Code Generation file for sfunc_digitalWriteEnergia
+%%   Simulink Coder TLC Code Generation file for sfcn_analogWriteEnergia
 %%
 %% Simulink version      : 8.2 (R2013b) 08-Aug-2013
-%% TLC file generated on : 07-May-2015 14:40:02
+%% TLC file generated on : 21-Jun-2015 21:43:23
 
 /%
      %%%-MATLAB_Construction_Commands_Start
      def = legacy_code('initialize');
-     def.SFunctionName = 'sfunc_digitalWriteEnergia';
-     def.OutputFcnSpec = 'digitalWriteEnergia(uint8 u1, uint8 u2)';
+     def.SFunctionName = 'sfcn_analogWriteEnergia';
+     def.OutputFcnSpec = 'void analogWriteEnergia(uint8 p1, uint8 u1)';
+     def.StartFcnSpec = 'void digitalModeInitialize(uint8 p1, uint8 p2)';
      def.HeaderFiles = {'gpioEnergia.h'};
      def.SourceFiles = {'gpioEnergia.c'};
+     def.IncPaths = {'C:\MATLAB\SupportPackages\R2013b\TM4C1294NPDT\blocks\src\'};
+     def.SrcPaths = {'C:\MATLAB\SupportPackages\R2013b\TM4C1294NPDT\blocks\src\'};
      def.SampleTime = 'parameterized';
      legacy_code('sfcn_tlc_generate', def);
      %%%-MATLAB_Construction_Commands_End
  %/
 
-%implements sfunc_digitalWriteEnergia "C"
+%implements sfcn_analogWriteEnergia "C"
 
 %% Function: BlockTypeSetup ===============================================
 %%
@@ -43,14 +46,26 @@
   %%
 %endfunction
 
+%% Function: Start ========================================================
+%%
+%function Start(block, system) Output
+  %%
+  %assign p1_val = LibBlockParameter(p1, "", "", 0)
+  %assign p2_val = LibBlockParameter(p2, "", "", 0)
+  %%
+    /* %<Type> (%<ParamSettings.FunctionName>): %<Name> */
+  digitalModeInitialize( (uint8_T)%<p1_val>, (uint8_T)%<p2_val>);
+  %%
+%endfunction
+
 %% Function: Outputs ======================================================
 %%
 %function Outputs(block, system) Output
   %%
+  %assign p1_val = LibBlockParameter(p1, "", "", 0)
   %assign u1_val = LibBlockInputSignal(0, "", "", 0)
-  %assign u2_val = LibBlockInputSignal(1, "", "", 0)
   %%
-  digitalWriteEnergia( (uint8_T)%<u1_val>, (uint8_T)%<u2_val>);
+  analogWriteEnergia( (uint8_T)%<p1_val>, (uint8_T)%<u1_val>);
   %%
 %endfunction
 

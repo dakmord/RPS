@@ -3,7 +3,7 @@
  * Copyright 2011-2013 The MathWorks, Inc.
  */
 
-#include "Arduino.h"
+#include "Energia.h"
 
 #ifndef _rtiostream
 
@@ -30,12 +30,12 @@ int rtIOStreamOpen(int argc, void * argv[])
     int result = RTIOSTREAM_NO_ERROR;
     int flushedData;
     
-    init();
+    //init(); //removed 20.06.2015, not found during compilation?!
 
 #ifndef EXT_BAUD_RATE
-    Serial4.begin(115200);
+    Serial.begin(115200);
 #else
-    Serial4.begin(EXT_BAUD_RATE);
+    Serial.begin(EXT_BAUD_RATE);
 #endif
    
     /* Flush out the serial receive buffer when opening a connection. This
@@ -45,8 +45,8 @@ int rtIOStreamOpen(int argc, void * argv[])
      * not transmitted this data! This may cause an issue for PIL and 
      * External mode during the handshaking process.
      */
-    while (Serial4.available()) {
-        flushedData = Serial4.read();
+    while (Serial.available()) {
+        flushedData = Serial.read();
     }
     
     return result;
@@ -63,7 +63,7 @@ int rtIOStreamSend(
     size_t       size,
     size_t     * sizeSent)
 {
-    Serial4.write( (const uint8_t *)src, (int16_t)size);
+    Serial.write( (const uint8_t *)src, (int16_t)size);
     *sizeSent = size;
      
     return RTIOSTREAM_NO_ERROR;
@@ -84,12 +84,12 @@ int rtIOStreamRecv(
   
     *sizeRecvd = 0U;
 
-	if (!Serial4.available()) {
+	if (!Serial.available()) {
 		return RTIOSTREAM_NO_ERROR;
 	}
     
     while ((*sizeRecvd < size)) {
-        data = Serial4.read();
+        data = Serial.read();
         if (data!=-1) {
             *ptr++ = (uint8_t) data;
             (*sizeRecvd)++;

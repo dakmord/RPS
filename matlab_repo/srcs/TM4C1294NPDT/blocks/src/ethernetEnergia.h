@@ -1,5 +1,5 @@
-#ifndef __GPIOENERGIA_H
- #define __GPIOENERGIA_H
+#ifndef __ETHERNETENERGIA_H
+ #define ____ETHERNETENERGIA_H_H
 
 #ifndef MATLAB_MEX_FILE
  #include <stdint.h>

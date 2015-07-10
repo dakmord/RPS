@@ -7,8 +7,9 @@
  #include "Energia.h"
 #endif
 
-void digitalWriteEnergia(unsigned char pin, unsigned char val);
-unsigned char digitalReadEnergia(unsigned char pin, unsigned char mod);
-unsigned short analogReadEnergia(unsigned char pin);
+void digitalWriteEnergia(unsigned char pin, unsigned char value);
+unsigned char digitalReadEnergia(unsigned char pin);
+void digitalModeInitialize(unsigned char pin, unsigned char mode);
+int analogReadEnergia(unsigned char pin);
 void analogWriteEnergia(unsigned char pin, unsigned char value);
 #endif

@@ -4,15 +4,17 @@
 %%   Simulink Coder TLC Code Generation file for sfunc_analogReadEnergia
 %%
 %% Simulink version      : 8.2 (R2013b) 08-Aug-2013
-%% TLC file generated on : 07-May-2015 14:40:02
+%% TLC file generated on : 28-Jun-2015 15:28:57
 
 /%
      %%%-MATLAB_Construction_Commands_Start
      def = legacy_code('initialize');
      def.SFunctionName = 'sfunc_analogReadEnergia';
-     def.OutputFcnSpec = 'uint16 y1 = analogReadEnergia(uint8 u1)';
+     def.OutputFcnSpec = 'int16 y1 = analogReadEnergia(uint8 u1)';
      def.HeaderFiles = {'gpioEnergia.h'};
      def.SourceFiles = {'gpioEnergia.c'};
+     def.IncPaths = {'C:\MATLAB\SupportPackages\R2013b\TM4C1294NPDT\blocks\src\'};
+     def.SrcPaths = {'C:\MATLAB\SupportPackages\R2013b\TM4C1294NPDT\blocks\src\'};
      def.SampleTime = 'parameterized';
      legacy_code('sfcn_tlc_generate', def);
      %%%-MATLAB_Construction_Commands_End

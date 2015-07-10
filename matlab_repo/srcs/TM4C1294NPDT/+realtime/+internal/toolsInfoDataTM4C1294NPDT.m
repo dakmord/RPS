@@ -5,10 +5,15 @@ if isequal(ispref('TM4C1294NPDT'),0)
     realtime.setup.internal.TM4C1294NPDT_installer;
 end
     
+hPkgInfo = hwconnectinstaller.PackageInfo;
+spPkg = hPkgInfo.getSpPkgInfo( 'TM4C1294NPDT' );
+
 % Basic Setup
 info.IncludePathDelimiter= '-I';
 info.PreprocSymbolDelimiter= '-D';
-info.RTIOStreamFileName= 'rtiostreamserial.c';
+info.RTIOStreamFileName = 'rtiostream_serial.cpp';
+info.RTIOStreamFilePath = fullfile( spPkg.RootDir, 'src' );
+info.SetExtModeSettings = '@realtime.internal.TM4C1294NPDTSetExtModeSettings';
 info.PreBuildUtility= '@realtime.internal.TM4C1294NPDTPreBuild';
 info.BuildUtility= '';
 info.PreDownloadUtility= '@realtime.internal.TM4C1294NPDTPreDownload';

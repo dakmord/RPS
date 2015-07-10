@@ -12,7 +12,7 @@ info. ExtModeTrigDuration= 2;
 info. ExtModeConnectPause= 1;
 
 info. ExtModeTransport= 3;
-info. ExtModeMexArgsInit= ['0 '  'COM12 '  '115200'];
+info. ExtModeMexArgsInit= ['0 '  '12 '  '115200'];
 
 %info. ExtModeTransport= 3;
 %info. ExtModeMexArgsInit= ['0 ' cominfo.COMPortNumber ' ' '256000'];%cominfo.UploadRate]; 
