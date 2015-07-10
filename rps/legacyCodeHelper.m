@@ -129,7 +129,6 @@ try
     if isempty(handles.name) || isempty(handles.outputPath) || ...
             isempty(handles.outputFunction) || isempty(handles.selectedFiles)
         errordlg('Please provide all * marked input parameter.','Missing Input Parameter');
-        return;
     end
 
     % Initialize legacy code tool...

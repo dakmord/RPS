@@ -253,7 +253,8 @@ else
 end
 
 % Fill log with actual stuff
-if getpref(pref_group, 'SVNConnected') && ~handles.offlineMode
+if (getpref(pref_group, 'SVNConnected') && ~handles.offlineMode) &&...
+        (ispref('RPSuserconfig') && ~isempty(getpref('RPSuserconfig','url')))
     [ret] = svnAbstraction('log');
 else
     ret = {};
