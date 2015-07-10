@@ -15,7 +15,7 @@
 		  platform="PCWIN64" 
 		  showsplicense="no" 
 		  url="https://github.com/dakmord/RPS/trunk/matlab_repo" 
-		  version="0.91" 
+		  version="1.0" 
 		  visible="1">  
 		  <ThirdPartyPackage 
 			 licenseurl="https://github.com/energia/Energia/blob/master/license.txt" 
