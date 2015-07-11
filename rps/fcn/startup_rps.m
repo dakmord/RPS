@@ -12,7 +12,7 @@
 
 % Modified:     17.06.2015, Daniel Schneider, "Bugfix for custom installation path. After Re-Install still MATLAB Preferences availabe for old version!
 %                                              Check for new Version and re-initialize all preferences!"
-
+% Modified:     11.07.2015, Daniel Schneider, "New Version because of bugfix for svn check credentials in combination with proxy settings"
 
 try
     %% Initialize RPS
@@ -20,7 +20,7 @@ try
     disp('### Initializing Rapid-Prototyping-System...');
 
     % Version
-    version = 1.52;
+    version = 1.53;
     
     % Initialize PrefGroup
     pref_group = 'RapidPrototypingSystem';
