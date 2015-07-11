@@ -140,7 +140,7 @@ function [out, status] = checkCredentials(info)
         end
     elseif ~getpref('RapidPrototypingSystem','SVNCredentialsValidated')
         % no credentials needed
-        if ~credentialsValiditySVN(info, info.url, '', '')==1
+        if ~isequal(credentialsValiditySVN(info, info.url, '', ''),1)
             
             % Save credentialsNeeded
             setpref('RPSuserconfig', 'credentialsNeeded', true);
@@ -177,10 +177,10 @@ custom='-r HEAD';
 authStore = '--no-auth-cache';
 
 if isempty(username)
-    cmd=sprintf('%s %s %s %s --username --password %s', info.svnExe, command, custom, repository, authStore);
+    cmd=sprintf('%s %s %s %s --username --password %s %s', info.svnExe, command, custom, repository, authStore,info.proxy);
 else
-    cmd=sprintf('%s %s %s %s --username %s --password %s %s', info.svnExe, ...
-        command, custom, repository, username, password, authStore);
+    cmd=sprintf('%s %s %s %s --username %s --password %s %s %s', info.svnExe, ...
+        command, custom, repository, username, password, authStore, info.proxy);
 end
 [status, cmdout] = dos(cmd);
 
