@@ -23,4 +23,4 @@ to Matlab/Simulink.
 
 -> Folders:	- html		This folder contains all help.html files
 				and also the Table of Contens structure
-				stored in helptoc.xml.
+				stored in helptoc.xml..
