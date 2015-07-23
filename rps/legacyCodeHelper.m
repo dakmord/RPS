@@ -128,7 +128,10 @@ try
     % Check for minimal configuration
     if isempty(handles.name) || isempty(handles.outputPath) || ...
             isempty(handles.outputFunction) || isempty(handles.selectedFiles)
+        hideLoadingAnimation(animationHandle);
+        enableDisableFig(gcf,'on');
         errordlg('Please provide all * marked input parameter.','Missing Input Parameter');
+        return;
     end
 
     % Initialize legacy code tool...

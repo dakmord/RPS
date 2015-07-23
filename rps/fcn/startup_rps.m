@@ -90,40 +90,45 @@ try
     end
     
     % Add RPS Paths to MATLAB Search Path
-    addpath(fullfile(path,'rps'));
-    addpath(genpath(fullfile(path,'rps', 'fcn')));
-    addpath(genpath(fullfile(path,'rps', 'html')));
-    addpath(genpath(fullfile(path,'rps', 'svn')));
-    addpath(genpath(fullfile(path,'rps', 'cfg')));
-    addpath(fullfile(path,'rps', 'etc'));
-    addpath(fullfile(path,'rps', 'etc', 'icons_18'));
-    addpath(genpath(fullfile(path,'rps', 'etc', 'shortcut_tools')));
-    % Blocks Paths
-    addpath(fullfile(path,'blocks'));
-    addpath(genpath(fullfile(path,'blocks', 'mex')));
-    addpath(genpath(fullfile(path,'blocks', 'sfcn')));
-    % addpath(genpath(fullfile(path,'blocks', 'src'))); % Not needed
-    % Help Paths
-    addpath(fullfile(path,'help'));
-    addpath(fullfile(path,'help', 'html'));
-    % Save Paths & Make available
-    savepath();
+    addRpsPaths;
     rehash;
   
     % Refresh Simulink Browser
     libBrow = LibraryBrowser.StandaloneBrowser;
     libBrow.refreshLibraryBrowser;
-
+    
     % Check if Shortcuts exist
     categories = GetShortcutCategories();
     shortcutExists = false;
+    supportPackageExists = false;
     for i=1:1:length(categories)
        if strcmp(categories{i},'Rapid-Prototyping-System')
           shortcutExists = true; 
        end
+       if strcmp(categories{i},'Support Packages')
+          supportPackageExists = true; 
+       end
     end
 
-    if shortcutExists == false || isFirstStartup || newVersion
+    % Delete old shortcuts if shortcutExists and new Version of System
+    if (shortcutExists  || supportPackageExists) && newVersion
+        % Get RPS Shortcuts and delete
+        if shortcutExists
+            rpsShortcuts = GetShortcutNames('Rapid-Prototyping-System');
+            for rpsShort = 1:1:length(rpsShortcuts)
+                RemoveShortcuts('Rapid-Prototyping-System', rpsShortcuts{rpsShort});
+            end
+        end
+        % Get SupportPackage shortcuts and delete
+        if supportPackageExists
+            supportPackageShortcuts = GetShortcutNames('Support Packages');
+            for supportShort = 1:1:length(supportPackageShortcuts)
+                RemoveShortcuts('Support Packages', supportPackageShortcuts{supportShort});
+            end
+        end
+    end
+    
+    if ~shortcutExists || isFirstStartup || newVersion
         % Icons path
         iconsPath = fullfile(path, 'rps', 'etc', 'icons_18');
         % Create ShortcutCategory
@@ -219,18 +224,13 @@ try
     end
 
     %% Build Searchdatabase for help files
-    
 	%htmlFolder = fullfile(path,'help', 'html');
 	%builddocsearchdb(htmlFolder);
-
-    %% Finish
-    % Change Dir to RPS...
-    %cd(path);							### Edited: Daniel Schneider, 08.06.2015, not needed and should be defined by users
 	
 	% Clear WS
 	clear;
 	
-    disp('### DONE without Errors!');
+    disp('### DONE!');
 catch err
     %% Error
     disp('### ERROR: startup_rps.m failed!');

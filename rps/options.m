@@ -250,7 +250,7 @@ if isequal(exist(fullfile(handles.homeDir,'auth.mat.aes'),'file'),2)
 end
 if isequal(exist(fullfile(handles.homeDir,'proxy.mat.aes'),'file'),2)
     % load proxy login/pass
-    [username,password] = decryptCredentials('credentials');
+    [username,password] = decryptCredentials('proxy');
     set(handles.edit_proxyUsername, 'String', username);
     handles.java_proxyPassword.Text = password;
 end
@@ -323,7 +323,18 @@ try
     handles.proxyExceptions = get(handles.edit_proxyExceptions, 'String');
     handles.proxyRequired = get(handles.checkbox_proxyRequired, 'Value');
     handles.maxLogEntries = str2num(get(handles.edit_maxLogEntries, 'String'));
-
+    
+    % Check if isempty after str2num conversion and set to default value
+    if isempty(handles.maxLogEntries)
+        handles.maxLogEntries = 20;
+    end
+    if isempty(handles.proxyPort)
+        handles.proxyPort = 8080;
+    end
+    if isempty(handles.updateInterval)
+        handles.handles.updateInterval=20;
+    end
+    
     % Check if Repo URL is valid
     if handles.customUrl==1
         % Custom URL
